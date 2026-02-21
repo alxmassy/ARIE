@@ -119,6 +119,8 @@ REGRESSION_THRESHOLDS = {
     "medium": {
         "readiness_drop_percent": 6.0,    # single week
         "supervision_independence_drop_percent": 15.0,
+        "cumulative_drop_percent": 10.0,  # sliding window over N weeks
+        "cumulative_drop_weeks": 4,
     },
 }
 
@@ -184,4 +186,19 @@ DEFAULT_BASELINE_VECTOR = {
     "behavioral_stability": 50.0,
     "cognitive_adaptability": 50.0,
     "consistency": 50.0,
+}
+
+# ---------------------------------------------------------------------------
+# Vocational Constraint Settings
+# ---------------------------------------------------------------------------
+VOCATIONAL_CONSTRAINTS = {
+    # Deficit below this threshold is tolerated (no penalty)
+    "deficit_tolerance": 15,
+    # Deficit at or above this value flags the job as "disqualified"
+    "disqualify_threshold": 30,
+    # Similarity penalty per point of excess deficit beyond tolerance
+    # E.g., deficit=20 with tolerance=15 → excess=5 → penalty=5*0.05=0.25
+    "penalty_per_point": 0.05,
+    # Max total penalty cap (prevents effective_similarity from going negative)
+    "max_penalty": 0.60,
 }

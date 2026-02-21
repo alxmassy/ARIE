@@ -116,6 +116,21 @@ def detect_regression_risk(snapshots: list[dict]) -> dict:
                     f"(from {si_scores[-2]} to {si_scores[-1]})"
                 )
 
+        # Check 5: Cumulative sliding window — catches slow gradual decline
+        cum_weeks = int(med_cfg.get("cumulative_drop_weeks", 4))
+        cum_thresh = med_cfg.get("cumulative_drop_percent", 10.0)
+        readiness_scores_all = _extract_scores(snapshots, "readiness_score")
+        if len(readiness_scores_all) > cum_weeks:
+            window_start = readiness_scores_all[-(cum_weeks + 1)]
+            window_end = readiness_scores_all[-1]
+            cum_change = compute_percent_change(window_start, window_end)
+            if cum_change <= -cum_thresh:
+                risk_level = "Medium"
+                reasons.append(
+                    f"Cumulative readiness drop of {abs(cum_change)}% over "
+                    f"last {cum_weeks} weeks (from {window_start} to {window_end})"
+                )
+
     # --- Low Risk ---
     if not reasons:
         reasons.append("No regression thresholds breached")
