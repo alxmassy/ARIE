@@ -52,7 +52,7 @@ const statusLabel = (risk: string) => {
     }
 };
 
-const trendDescription = (trend: string, score: number, rollingAvg: number | null) => {
+const trendDescription = (trend: string, score: number, rollingAvg: number | null | undefined) => {
     const formatted = score.toFixed(1);
     if (trend === "growth") {
         return `Readiness is improving — currently at ${formatted}.`;
@@ -60,7 +60,7 @@ const trendDescription = (trend: string, score: number, rollingAvg: number | nul
     if (trend === "decline") {
         return `Readiness has been declining — currently at ${formatted}. Review recent observations.`;
     }
-    if (rollingAvg !== null) {
+    if (rollingAvg !== null && rollingAvg !== undefined && !isNaN(rollingAvg)) {
         return `Readiness is holding steady around ${Number(rollingAvg).toFixed(1)}.`;
     }
     return `Current readiness score is ${formatted}.`;
@@ -308,7 +308,7 @@ export default function TeenDetailPage() {
                 <div className="card">
                     <div className="section-title">Current Strength Profile</div>
                     <ResponsiveContainer width="100%" height={300}>
-                        <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
+                        <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="65%">
                             <PolarGrid stroke="var(--color-border)" />
                             <PolarAngleAxis
                                 dataKey="dimension"
@@ -320,7 +320,8 @@ export default function TeenDetailPage() {
                             <PolarRadiusAxis
                                 angle={90}
                                 domain={[0, 100]}
-                                tick={{ fontSize: 10, fill: "var(--color-text-secondary)" }}
+                                tick={false} // Removed inner tick numbers completely to avoid overlap 
+                                axisLine={false}
                             />
                             <Radar
                                 name="Readiness"

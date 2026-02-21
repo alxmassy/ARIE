@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Nunito, JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
+import Image from "next/image";
 import "./globals.css";
+import arieLogo from "./arie.png";
 
 const nunito = Nunito({
   variable: "--font-nunito",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -15,8 +17,9 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500", "600", "700"],
 });
 
+
 export const metadata: Metadata = {
-  title: "ARIE — Transition Support",
+  title: "ARIE",
   description:
     "Empowering caregivers with readiness intelligence for vocational transition tracking.",
 };
@@ -53,27 +56,21 @@ export default function RootLayout({
                 textDecoration: "none",
                 display: "flex",
                 alignItems: "center",
-                gap: 10,
+                gap: 12,
               }}
             >
+              <Image src={arieLogo} alt="ARIE Logo" height={32} />
               <span
                 style={{
-                  fontSize: "1.15rem",
-                  fontWeight: 700,
+                  fontSize: "1.35rem",
+                  fontFamily: "var(--font-nunito), sans-serif",
+                  fontWeight: 800,
                   color: "var(--color-accent)",
+                  lineHeight: 1,
                   letterSpacing: "-0.01em",
                 }}
               >
                 ARIE
-              </span>
-              <span
-                style={{
-                  fontSize: "0.8125rem",
-                  color: "var(--color-text-secondary)",
-                  fontWeight: 500,
-                }}
-              >
-                Transition Support
               </span>
             </Link>
             <div style={{ display: "flex", gap: 8 }}>
