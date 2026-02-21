@@ -218,3 +218,23 @@ CONFIDENCE_SETTINGS = {
     "medium_threshold": 0.45,
 }
 
+# ---------------------------------------------------------------------------
+# Gemini AI Configuration
+# ---------------------------------------------------------------------------
+import os
+from google import genai
+from dotenv import load_dotenv
+
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
+
+_gemini_client = None
+
+def get_gemini_client():
+    global _gemini_client
+    if not _gemini_client and GEMINI_API_KEY:
+        _gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+    return _gemini_client
+

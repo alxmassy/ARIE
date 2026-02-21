@@ -157,6 +157,21 @@ export interface SnapshotResult {
     regression: { risk_level: string; reasons: string[] };
 }
 
+export interface GrowthRecommendation {
+    rank: number;
+    dimension: string;
+    action: string;
+    reason: string;
+    expected_dimension_gain: number;
+    expected_readiness_gain: number;
+    secondary_impact: string | null;
+}
+
+export interface GrowthPlan {
+    recommendations: GrowthRecommendation[];
+    message?: string;
+}
+
 /* ================================================================
    API Methods
    ================================================================ */
@@ -198,6 +213,9 @@ export const createSnapshot = (teenId: string) =>
     apiFetch<SnapshotResult>(`/dashboard/snapshot/${teenId}`, {
         method: "POST",
     });
+
+export const getGrowthPlan = (teenId: string) => 
+    apiFetch<GrowthPlan>(`/dashboard/teen/${teenId}/growth-plan`);
 
 // Transcription (audio upload — cannot use apiFetch since it's multipart)
 export async function transcribeAudio(

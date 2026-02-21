@@ -7,8 +7,10 @@ import {
     getObservations,
     createSnapshot,
     deleteTeen,
+    getGrowthPlan,
     type TeenDetail,
     type Observation,
+    type GrowthPlan,
 } from "@/lib/api";
 import {
     Radar,
@@ -82,17 +84,20 @@ export default function TeenDetailPage() {
 
     const [detail, setDetail] = useState<TeenDetail | null>(null);
     const [observations, setObservations] = useState<Observation[]>([]);
+    const [growthPlan, setGrowthPlan] = useState<GrowthPlan | null>(null);
     const [loading, setLoading] = useState(true);
     const [snapshotting, setSnapshotting] = useState(false);
 
     const fetchData = async () => {
         try {
-            const [d, obs] = await Promise.all([
+            const [d, obs, plan] = await Promise.all([
                 getTeenDetail(teenId),
                 getObservations(teenId),
+                getGrowthPlan(teenId),
             ]);
             setDetail(d);
             setObservations(obs);
+            setGrowthPlan(plan);
         } catch (e) {
             console.error("Failed to load teen detail:", e);
         } finally {
@@ -306,6 +311,98 @@ export default function TeenDetailPage() {
                 </div>
             </div>
 
+            {/* ── Section: Recommended Focus Areas (Growth Plan) ── */}
+            {growthPlan && growthPlan.recommendations.length > 0 && (
+                <div style={{ marginBottom: 28 }}>
+                    <div className="section-title">Recommended Focus Areas (This Week)</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+                        {growthPlan.recommendations.map((rec) => (
+                            <div
+                                key={rec.rank}
+                                className="card"
+                                style={{
+                                    padding: "20px 24px",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    position: "relative",
+                                    borderTop: "4px solid var(--color-accent)",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "flex-start",
+                                        marginBottom: 12,
+                                    }}
+                                >
+                                    <span
+                                        style={{
+                                            fontSize: "0.75rem",
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.06em",
+                                            fontWeight: 700,
+                                            color: "var(--color-accent)",
+                                        }}
+                                    >
+                                        Priority {rec.rank}
+                                    </span>
+                                    <span
+                                        className="data-mono"
+                                        style={{
+                                            fontSize: "0.875rem",
+                                            color: "var(--color-positive)",
+                                            fontWeight: 700,
+                                        }}
+                                    >
+                                        +{rec.expected_readiness_gain.toFixed(1)} Pts
+                                    </span>
+                                </div>
+                                
+                                <h3 style={{ fontSize: "1rem", lineHeight: 1.4, marginBottom: 8 }}>
+                                    {rec.action}
+                                </h3>
+
+                                <div style={{ fontSize: "0.8125rem", color: "var(--color-text-secondary)", marginBottom: 16 }}>
+                                    Targets <strong>{DIMENSION_LABELS[rec.dimension] || rec.dimension}</strong>
+                                </div>
+
+                                <div style={{ marginTop: "auto" }}>
+                                    <div
+                                        style={{
+                                            background: "rgba(91, 138, 114, 0.08)",
+                                            padding: "10px 12px",
+                                            borderRadius: 8,
+                                            fontSize: "0.8125rem",
+                                            lineHeight: 1.5,
+                                            color: "var(--color-text-primary)",
+                                        }}
+                                    >
+                                        <strong>Why:</strong> {rec.reason}
+                                    </div>
+                                    
+                                    {rec.secondary_impact && (
+                                        <div
+                                            style={{
+                                                marginTop: 8,
+                                                fontSize: "0.75rem",
+                                                fontWeight: 600,
+                                                color: rec.secondary_impact.includes("unlock") ? "var(--color-positive)" : "var(--color-text-secondary)",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 6,
+                                            }}
+                                        >
+                                            <span style={{ fontSize: "1rem" }}>✨</span> {rec.secondary_impact}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+            
             {/* ── Section 2: Current Strength Profile + Timeline ── */}
             <div
                 style={{

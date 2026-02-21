@@ -14,8 +14,9 @@ from models import JobProfile, Observation, Teen, WeeklySnapshot
 from schemas import JobMatch, WeeklySnapshotResponse
 from services.readiness_engine import compute_readiness_score, compute_score_breakdown, compute_confidence
 from services.regression_engine import detect_regression_risk
-from services.temporal_engine import compute_rolling_average, detect_trend
+from services.temporal_engine import compute_rolling_average, detect_trend, detect_all_trends
 from services.vocational_engine import match_jobs
+from services.growth_engine import generate_growth_plan
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -228,3 +229,77 @@ def create_snapshot(teen_id: UUID, db: Session = Depends(get_db)):
         "snapshot": WeeklySnapshotResponse.model_validate(snapshot).model_dump(),
         "regression": regression,
     }
+
+
+@router.get("/teen/{teen_id}/growth-plan")
+def teen_growth_plan(teen_id: UUID, db: Session = Depends(get_db)):
+    """
+    Generate the Top 3 personalized growth interventions for a teen.
+    Requires running the intelligence pipeline to gather inputs for the engine.
+    """
+    teen = db.query(Teen).filter(Teen.id == teen_id).first()
+    if not teen:
+        raise HTTPException(status_code=404, detail="Teen not found")
+
+    current_vector = dict(teen.baseline_vector)
+
+    snapshots = (
+        db.query(WeeklySnapshot)
+        .filter(WeeklySnapshot.teen_id == teen_id)
+        .order_by(WeeklySnapshot.week_number.asc())
+        .all()
+    )
+
+    snapshot_dicts = []
+    if snapshots:
+        snapshot_dicts = [
+            {
+                "readiness_score": s.readiness_score,
+                "readiness_vector": s.readiness_vector,
+                "week_number": s.week_number,
+            }
+            for s in snapshots
+        ]
+
+    # Calculate trends
+    trend_slopes = detect_all_trends(snapshot_dicts) if len(snapshot_dicts) > 1 else None
+
+    # Calculate regression
+    regression = detect_regression_risk(snapshot_dicts) if snapshot_dicts else {"risk_level": "Low"}
+
+    # Calculate job matches for unlocks
+    job_profiles_db = db.query(JobProfile).all()
+    if job_profiles_db:
+        profiles = [
+            {"job_name": jp.job_name, "job_vector": jp.job_vector}
+            for jp in job_profiles_db
+        ]
+        job_matches = match_jobs(current_vector, profiles)
+    else:
+        job_matches = match_jobs(current_vector)
+
+    # Calculate confidence
+    observation_count = db.query(Observation).filter(Observation.teen_id == teen_id).count()
+    confidence = compute_confidence(snapshot_dicts, observation_count)
+
+    # Fetch recent observations for AI Context
+    recent_obs = (
+        db.query(Observation)
+        .filter(Observation.teen_id == teen_id)
+        .order_by(Observation.created_at.desc())
+        .limit(10)
+        .all()
+    )
+    obs_texts = [o.raw_text for o in recent_obs]
+
+    # Generate plan
+    plan = generate_growth_plan(
+        current_vector=current_vector,
+        trend_slopes=trend_slopes,
+        regression_risk=regression["risk_level"],
+        job_matches=job_matches,
+        confidence_level=confidence["confidence"],
+        recent_observations=obs_texts
+    )
+
+    return plan

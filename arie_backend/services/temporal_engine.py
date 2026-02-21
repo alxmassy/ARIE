@@ -116,3 +116,42 @@ def detect_trend(
         return "decline"
     else:
         return "plateau"
+
+
+def detect_all_trends(
+    snapshots: list[dict],
+    window: int | None = None,
+) -> dict[str, float]:
+    """
+    Calculate the linear regression slope for each individual dimension 
+    over the given window of snapshots.
+
+    Returns:
+        {"task_performance": 1.5, "consistency": -2.1, ...}
+    """
+    if window is None:
+        window = TREND_WINDOW
+
+    if len(snapshots) < 2:
+        return {dim: 0.0 for dim in DIMENSION_KEYS}
+
+    recent = snapshots[-window:]
+    n = len(recent)
+    if n < 2:
+        return {dim: 0.0 for dim in DIMENSION_KEYS}
+
+    x_vals = list(range(n))
+    x_mean = sum(x_vals) / n
+
+    denominator = sum((x - x_mean) ** 2 for x in x_vals)
+    if denominator == 0:
+        return {dim: 0.0 for dim in DIMENSION_KEYS}
+
+    slopes = {}
+    for dim in DIMENSION_KEYS:
+        y_vals = [snap.get("readiness_vector", {}).get(dim, 0.0) for snap in recent]
+        y_mean = sum(y_vals) / n
+        numerator = sum((x - x_mean) * (y - y_mean) for x, y in zip(x_vals, y_vals))
+        slopes[dim] = round(numerator / denominator, 3)
+
+    return slopes
