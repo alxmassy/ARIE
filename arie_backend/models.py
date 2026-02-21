@@ -69,3 +69,16 @@ class JobProfile(Base):
     job_name = Column(Text, nullable=False, unique=True)
     job_vector = Column(JSONB, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class GrowthPlanCache(Base):
+    __tablename__ = "growth_plan_cache"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    teen_id = Column(UUID(as_uuid=True), ForeignKey("teens.id"), nullable=False)
+    input_hash = Column(String(64), nullable=False, unique=True, index=True)
+    plan_data = Column(JSONB, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    teen = relationship("Teen")

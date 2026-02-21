@@ -4,13 +4,15 @@ Dashboard router — intelligence presentation layer.
 Provides overview, detailed teen view, and manual snapshot creation.
 """
 
+import hashlib
+import json
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import JobProfile, Observation, Teen, WeeklySnapshot
+from models import JobProfile, Observation, Teen, WeeklySnapshot, GrowthPlanCache
 from schemas import JobMatch, WeeklySnapshotResponse
 from services.readiness_engine import compute_readiness_score, compute_score_breakdown, compute_confidence
 from services.regression_engine import detect_regression_risk
@@ -292,14 +294,40 @@ def teen_growth_plan(teen_id: UUID, db: Session = Depends(get_db)):
     )
     obs_texts = [o.raw_text for o in recent_obs]
 
-    # Generate plan
-    plan = generate_growth_plan(
-        current_vector=current_vector,
-        trend_slopes=trend_slopes,
-        regression_risk=regression["risk_level"],
-        job_matches=job_matches,
-        confidence_level=confidence["confidence"],
-        recent_observations=obs_texts
-    )
+    # Build inputs for cache hashing
+    inputs_dict = {
+        "current_vector": current_vector,
+        "trend_slopes": trend_slopes,
+        "regression_risk": regression["risk_level"],
+        "job_matches": job_matches,
+        "confidence_level": confidence["confidence"],
+        "recent_observations": obs_texts,
+    }
+
+    # Generate MD5 hash of inputs
+    input_str = json.dumps(inputs_dict, sort_keys=True)
+    input_hash = hashlib.md5(input_str.encode("utf-8")).hexdigest()
+
+    # Check database cache
+    cached_plan = db.query(GrowthPlanCache).filter(
+        GrowthPlanCache.teen_id == teen_id,
+        GrowthPlanCache.input_hash == input_hash
+    ).first()
+
+    if cached_plan:
+        return cached_plan.plan_data
+
+    # Generate plan using Gemini
+    plan = generate_growth_plan(**inputs_dict)
+
+    # Save to cache (only if valid)
+    if plan and "recommendations" in plan and plan["recommendations"]:
+        new_cache = GrowthPlanCache(
+            teen_id=teen_id,
+            input_hash=input_hash,
+            plan_data=plan
+        )
+        db.add(new_cache)
+        db.commit()
 
     return plan
