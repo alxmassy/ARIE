@@ -501,7 +501,7 @@ def test_confidence_scoring():
         {"readiness_score": 60.0, "readiness_vector": {}, "week_number": i}
         for i in range(1, 5)
     ]
-    result = compute_confidence(stable_snaps, 2)  # 0.5 obs/week
+    result = compute_confidence(stable_snaps, 1)  # 0.25 obs/week — sparse
     print(f"  4 weeks, stable, 2 obs: {result['confidence']} ({result['confidence_score']:.4f})")
     print(f"    factors: {result['factors']}")
     log("L7", "4 weeks + sparse obs → Medium confidence",
