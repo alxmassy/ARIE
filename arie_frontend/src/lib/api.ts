@@ -81,15 +81,27 @@ export interface DashboardTeen {
 }
 
 export interface GapDetail {
-    teen_value: number;
-    job_value: number;
+    teen: number;
+    required: number;
     gap: number;
+}
+
+export interface PenalizedDimension {
+    deficit: number;
+    excess: number;
+    penalty: number;
 }
 
 export interface JobMatch {
     job_name: string;
     similarity: number;
     similarity_percent: number;
+    effective_similarity: number;
+    effective_percent: number;
+    penalty: number;
+    disqualified: boolean;
+    disqualified_dimensions: string[];
+    penalized_dimensions: Record<string, PenalizedDimension>;
     gap_analysis: Record<string, GapDetail>;
 }
 
@@ -101,6 +113,17 @@ export interface ScoreBreakdown {
     >;
 }
 
+export interface Confidence {
+    confidence: "Low" | "Medium" | "High";
+    confidence_score: number;
+    confidence_reason: string;
+    factors: {
+        temporal: number;
+        stability: number;
+        observation_frequency: number;
+    };
+}
+
 export interface TeenDetail {
     id: string;
     name: string;
@@ -108,6 +131,7 @@ export interface TeenDetail {
     current_vector: ReadinessVector;
     score_breakdown: ScoreBreakdown;
     regression: { risk_level: string; reasons: string[] };
+    confidence: Confidence;
     trend: string;
     rolling_average: number | null;
     job_matches: JobMatch[];

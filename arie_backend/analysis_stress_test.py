@@ -25,6 +25,7 @@ from services.readiness_engine import (
     compute_readiness_score,
     compute_score_breakdown,
     apply_observation_delta,
+    compute_confidence,
 )
 from services.regression_engine import detect_regression_risk
 from services.vocational_engine import match_jobs
@@ -341,38 +342,85 @@ def test_cross_impact():
 def test_vocational_alignment():
     print("\n━━━ Layer 5: Vocational Alignment Robustness ━━━")
 
-    # Perfect match should have similarity ≈ 1.0
+    from utils.config import VOCATIONAL_CONSTRAINTS
+    tolerance = VOCATIONAL_CONSTRAINTS["deficit_tolerance"]
+    disqualify = VOCATIONAL_CONSTRAINTS["disqualify_threshold"]
+
+    # Perfect match — no penalty, similarity ≈ 1.0
     teen = {k: 80.0 for k in DIMENSION_KEYS}
     job_perfect = [{"job_name": "Perfect", "job_vector": {k: 80.0 for k in DIMENSION_KEYS}}]
     result = match_jobs(teen, job_perfect)
-    log("L5", "Perfect match similarity ≈ 1.0",
-        result[0]["similarity"] > 0.999,
-        f"sim={result[0]['similarity']}")
+    r = result[0]
+    log("L5", "Perfect match: raw similarity ≈ 1.0",
+        r["similarity"] > 0.999,
+        f"sim={r['similarity']}")
+    log("L5", "Perfect match: no penalty",
+        r["penalty"] == 0.0,
+        f"penalty={r['penalty']}")
+    log("L5", "Perfect match: not disqualified",
+        r["disqualified"] is False)
+    log("L5", "Perfect match: effective = raw",
+        abs(r["effective_similarity"] - r["similarity"]) < 0.001)
 
-    # Mismatch on one dimension should reduce similarity
-    job_a = {"job_name": "Job A", "job_vector": {k: 80.0 for k in DIMENSION_KEYS}}
-    job_b = {"job_name": "Job B",
-             "job_vector": {**{k: 80.0 for k in DIMENSION_KEYS}, "consistency": 20}}
-    job_c = {"job_name": "Job C",
-             "job_vector": {**{k: 80.0 for k in DIMENSION_KEYS}, "supervision_independence": 20}}
+    # Mild deficit (within tolerance) — no penalty
+    print(f"\n  Tolerance={tolerance}, Disqualify={disqualify}")
+    mild_job = [{"job_name": "Mild", "job_vector": {
+        **{k: 80.0 for k in DIMENSION_KEYS},
+        "consistency": 80 + (tolerance - 1)  # deficit < tolerance
+    }}]
+    mild_result = match_jobs(teen, mild_job)[0]
+    log("L5", f"Deficit < tolerance ({tolerance-1}pt): no penalty",
+        mild_result["penalty"] == 0.0,
+        f"penalty={mild_result['penalty']}")
 
-    results = match_jobs(teen, [job_a, job_b, job_c])
-    sims = {r["job_name"]: r["similarity"] for r in results}
-    print(f"  Similarities: A={sims['Job A']:.4f}, B={sims['Job B']:.4f}, C={sims['Job C']:.4f}")
+    # Moderate deficit (beyond tolerance, below disqualify)
+    excess = 5
+    deficit_val = tolerance + excess  # e.g., 20
+    mod_job = [{"job_name": "Moderate", "job_vector": {
+        **{k: 80.0 for k in DIMENSION_KEYS},
+        "task_performance": 80 + deficit_val  # teen=80, job=100 → deficit=20
+    }}]
+    mod_result = match_jobs(teen, mod_job)[0]
+    log("L5", f"Deficit beyond tolerance ({deficit_val}pt): penalty applied",
+        mod_result["penalty"] > 0.0,
+        f"penalty={mod_result['penalty']}")
+    log("L5", "Effective similarity < raw similarity",
+        mod_result["effective_similarity"] < mod_result["similarity"],
+        f"raw={mod_result['similarity']:.4f}, effective={mod_result['effective_similarity']:.4f}")
+    log("L5", "Penalized dimension tracked in report",
+        "task_performance" in mod_result["penalized_dimensions"],
+        f"penalized: {list(mod_result['penalized_dimensions'].keys())}")
 
-    log("L5", "Perfect match ranks #1",
-        sims["Job A"] > sims["Job B"] and sims["Job A"] > sims["Job C"])
-    log("L5", "Single dimension mismatch is penalized",
-        sims["Job B"] < sims["Job A"],
-        f"A={sims['Job A']:.4f} > B={sims['Job B']:.4f}")
+    # Extreme deficit (triggers disqualification)
+    extreme_job = [{"job_name": "Extreme", "job_vector": {
+        **{k: 80.0 for k in DIMENSION_KEYS},
+        "behavioral_stability": 80 + disqualify  # deficit ≥ disqualify
+    }}]
+    extreme_result = match_jobs(teen, extreme_job)[0]
+    log("L5", f"Deficit ≥ disqualify ({disqualify}pt): job disqualified",
+        extreme_result["disqualified"] is True,
+        f"disqualified_dims={extreme_result['disqualified_dimensions']}")
+
+    # Ranking: disqualified jobs sink to bottom
+    mixed_jobs = [
+        {"job_name": "Good", "job_vector": {k: 80.0 for k in DIMENSION_KEYS}},
+        {"job_name": "Bad", "job_vector": {
+            **{k: 80.0 for k in DIMENSION_KEYS},
+            "task_performance": 80 + disqualify + 10
+        }},
+    ]
+    ranked = match_jobs(teen, mixed_jobs)
+    print(f"\n  Ranking: {[(r['job_name'], r['effective_percent'], r['disqualified']) for r in ranked]}")
+    log("L5", "Qualified job ranks above disqualified",
+        ranked[0]["job_name"] == "Good",
+        f"#1={ranked[0]['job_name']}, #2={ranked[1]['job_name']}")
 
     # Gap analysis correctness
-    gap = results[0]["gap_analysis"]
+    gap = result[0]["gap_analysis"]
     for dim in DIMENSION_KEYS:
-        expected_gap = 0.0  # teen=80, job=80
         actual_gap = gap[dim]["gap"]
         log("L5", f"  Gap {dim} = 0 for perfect match",
-            abs(actual_gap - expected_gap) < 0.01,
+            abs(actual_gap) < 0.01,
             f"gap={actual_gap}")
 
     # Zero vector edge case
@@ -431,6 +479,68 @@ def test_explainability():
 
 
 # ──────────────────────────────────────────────────────────────
+#  Layer 7: Confidence Scoring
+# ──────────────────────────────────────────────────────────────
+
+def test_confidence_scoring():
+    print("\n━━━ Layer 7: Confidence Scoring ━━━")
+
+    from utils.config import CONFIDENCE_SETTINGS
+    cfg = CONFIDENCE_SETTINGS
+
+    # Zero data → Low confidence
+    result = compute_confidence([], 0)
+    print(f"  No data: {result['confidence']} ({result['confidence_score']:.4f})")
+    print(f"    reason: {result['confidence_reason']}")
+    log("L7", "No data → Low confidence",
+        result["confidence"] == "Low",
+        f"got: {result['confidence']}")
+
+    # Partial data (4 weeks, stable, sparse obs) → Medium
+    stable_snaps = [
+        {"readiness_score": 60.0, "readiness_vector": {}, "week_number": i}
+        for i in range(1, 5)
+    ]
+    result = compute_confidence(stable_snaps, 2)  # 0.5 obs/week
+    print(f"  4 weeks, stable, 2 obs: {result['confidence']} ({result['confidence_score']:.4f})")
+    print(f"    factors: {result['factors']}")
+    log("L7", "4 weeks + sparse obs → Medium confidence",
+        result["confidence"] == "Medium",
+        f"got: {result['confidence']}, score={result['confidence_score']:.4f}")
+
+    # Full data (8+ weeks, stable, frequent obs) → High
+    full_snaps = [
+        {"readiness_score": 65.0 + i * 0.5, "readiness_vector": {}, "week_number": i}
+        for i in range(1, 10)
+    ]
+    result = compute_confidence(full_snaps, 8)  # ~0.9 obs/week
+    print(f"  9 weeks, stable, 8 obs: {result['confidence']} ({result['confidence_score']:.4f})")
+    print(f"    factors: {result['factors']}")
+    log("L7", "8+ weeks + stable + frequent obs → High confidence",
+        result["confidence"] == "High",
+        f"got: {result['confidence']}, score={result['confidence_score']:.4f}")
+
+    # High volatility degrades confidence
+    volatile_snaps = [
+        {"readiness_score": s, "readiness_vector": {}, "week_number": i}
+        for i, s in enumerate([30, 80, 25, 90, 35, 85, 40, 75, 30], 1)
+    ]
+    result_v = compute_confidence(volatile_snaps, 8)
+    print(f"  9 weeks, volatile: {result_v['confidence']} ({result_v['confidence_score']:.4f})")
+    print(f"    stability factor: {result_v['factors']['stability']:.4f}")
+    log("L7", "High volatility → stability factor < 0.5",
+        result_v["factors"]["stability"] < 0.5,
+        f"stability={result_v['factors']['stability']:.4f}")
+    log("L7", "Volatile scores → lower confidence than stable",
+        result_v["confidence_score"] < result["confidence_score"],
+        f"volatile={result_v['confidence_score']:.4f} < stable={result['confidence_score']:.4f}")
+
+    # Confidence always returns a reason
+    log("L7", "Confidence always has a reason",
+        len(result["confidence_reason"]) > 0)
+
+
+# ──────────────────────────────────────────────────────────────
 #  Summary
 # ──────────────────────────────────────────────────────────────
 
@@ -482,6 +592,9 @@ if __name__ == "__main__":
 
     # Layer 6
     test_explainability()
+
+    # Layer 7
+    test_confidence_scoring()
 
     # Summary
     all_passed = print_summary()

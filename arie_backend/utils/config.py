@@ -202,3 +202,19 @@ VOCATIONAL_CONSTRAINTS = {
     # Max total penalty cap (prevents effective_similarity from going negative)
     "max_penalty": 0.60,
 }
+
+# ---------------------------------------------------------------------------
+# Confidence Scoring Settings
+# ---------------------------------------------------------------------------
+CONFIDENCE_SETTINGS = {
+    # Temporal maturity: full confidence at this many weeks
+    "mature_weeks": 8,
+    # Volatility: std dev of readiness scores above this lowers confidence
+    "volatility_threshold": 8.0,
+    # Observation frequency: fewer than this per week lowers confidence
+    "min_observations_per_week": 0.5,
+    # Level thresholds (composite score → label)
+    "high_threshold": 0.75,
+    "medium_threshold": 0.45,
+}
+

@@ -10,9 +10,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import JobProfile, Teen, WeeklySnapshot
+from models import JobProfile, Observation, Teen, WeeklySnapshot
 from schemas import JobMatch, WeeklySnapshotResponse
-from services.readiness_engine import compute_readiness_score, compute_score_breakdown
+from services.readiness_engine import compute_readiness_score, compute_score_breakdown, compute_confidence
 from services.regression_engine import detect_regression_risk
 from services.temporal_engine import compute_rolling_average, detect_trend
 from services.vocational_engine import match_jobs
@@ -122,6 +122,16 @@ def teen_detail(teen_id: UUID, db: Session = Depends(get_db)):
     else:
         job_matches = match_jobs(current_vector)  # uses defaults from config
 
+    # Observation count for confidence scoring
+    observation_count = (
+        db.query(Observation)
+        .filter(Observation.teen_id == teen_id)
+        .count()
+    )
+
+    # Confidence scoring
+    confidence = compute_confidence(snapshot_dicts, observation_count)
+
     # Snapshot timeline for frontend charts
     timeline = [
         {
@@ -140,6 +150,7 @@ def teen_detail(teen_id: UUID, db: Session = Depends(get_db)):
         "current_vector": current_vector,
         "score_breakdown": score_breakdown,
         "regression": regression,
+        "confidence": confidence,
         "trend": trend,
         "rolling_average": rolling_avg,
         "job_matches": job_matches,
