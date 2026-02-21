@@ -198,3 +198,24 @@ export const createSnapshot = (teenId: string) =>
     apiFetch<SnapshotResult>(`/dashboard/snapshot/${teenId}`, {
         method: "POST",
     });
+
+// Transcription (audio upload — cannot use apiFetch since it's multipart)
+export async function transcribeAudio(
+    audioBlob: Blob,
+    lang: "en" | "hi"
+): Promise<{ text: string; error?: string }> {
+    const formData = new FormData();
+    formData.append("audio", audioBlob, "recording.webm");
+
+    const res = await fetch(`${API_BASE}/api/transcribe?lang=${lang}`, {
+        method: "POST",
+        body: formData,
+    });
+
+    if (!res.ok) {
+        const error = await res.text();
+        throw new Error(`Transcription failed: ${error}`);
+    }
+
+    return res.json();
+}

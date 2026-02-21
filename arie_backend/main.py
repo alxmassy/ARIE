@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from database import SessionLocal, engine
 from models import Base, JobProfile
-from routers import dashboard, observations, teens
+from routers import dashboard, observations, teens, transcription
 from utils.config import DEFAULT_JOB_PROFILES
 
 
@@ -61,6 +61,7 @@ app.add_middleware(
 app.include_router(teens.router)
 app.include_router(observations.router)
 app.include_router(dashboard.router)
+app.include_router(transcription.router)
 
 
 @app.get("/", tags=["Health"])

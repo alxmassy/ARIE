@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
     getTeens,
     createObservation,
+    transcribeAudio,
     type Teen,
     type ObservationResult,
 } from "@/lib/api";
@@ -26,11 +27,91 @@ export default function ObservePage() {
     const [result, setResult] = useState<ObservationResult | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    // Voice input state
+    const [voiceLang, setVoiceLang] = useState<"en" | "hi">("en");
+    const [isRecording, setIsRecording] = useState(false);
+    const [isTranscribing, setIsTranscribing] = useState(false);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const chunksRef = useRef<Blob[]>([]);
+
     useEffect(() => {
         getTeens()
             .then(setTeens)
             .catch((e) => console.error("Failed to load teens:", e));
     }, []);
+
+    const stopRecording = useCallback(() => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+            mediaRecorderRef.current.stop();
+        }
+    }, []);
+
+    const startRecording = useCallback(async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream, {
+                mimeType: MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+                    ? "audio/webm;codecs=opus"
+                    : "audio/webm",
+            });
+
+            chunksRef.current = [];
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) {
+                    chunksRef.current.push(e.data);
+                }
+            };
+
+            mediaRecorder.onstop = async () => {
+                // Stop all tracks to release the microphone
+                stream.getTracks().forEach((track) => track.stop());
+                setIsRecording(false);
+
+                const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
+
+                if (audioBlob.size < 100) {
+                    setError("Recording too short — try speaking longer.");
+                    return;
+                }
+
+                setIsTranscribing(true);
+                try {
+                    const res = await transcribeAudio(audioBlob, voiceLang);
+                    if (res.text) {
+                        setRawText((prev) => {
+                            const separator = prev.trim() ? " " : "";
+                            return prev + separator + res.text;
+                        });
+                    } else if (res.error) {
+                        setError(`Transcription failed: ${res.error}`);
+                    } else {
+                        setError("No speech detected — try again.");
+                    }
+                } catch (e) {
+                    setError(e instanceof Error ? e.message : "Transcription failed");
+                } finally {
+                    setIsTranscribing(false);
+                }
+            };
+
+            mediaRecorderRef.current = mediaRecorder;
+            mediaRecorder.start();
+            setIsRecording(true);
+            setError(null);
+        } catch (e) {
+            console.error("Microphone access denied:", e);
+            setError("Microphone access denied. Please allow microphone permissions.");
+        }
+    }, [voiceLang]);
+
+    const toggleRecording = useCallback(() => {
+        if (isRecording) {
+            stopRecording();
+        } else {
+            startRecording();
+        }
+    }, [isRecording, stopRecording, startRecording]);
 
     const handleAnalyze = async () => {
         if (!selectedTeen || rawText.trim().length < 10) return;
@@ -77,8 +158,8 @@ export default function ObservePage() {
                     Record an Observation
                 </h1>
                 <p className="status-line">
-                    Describe what you observed in natural language. ARIE will extract
-                    structured behavioral insights automatically.
+                    Describe what you observed — type or use voice input. English,
+                    Hindi, and Hinglish are all supported.
                 </p>
             </div>
 
@@ -112,24 +193,128 @@ export default function ObservePage() {
                         </select>
                     </div>
 
-                    {/* Observation Text */}
+                    {/* Observation Text + Voice Input */}
                     <div style={{ marginBottom: 20 }}>
-                        <label
-                            style={{
-                                display: "block",
-                                fontSize: "0.8125rem",
-                                fontWeight: 600,
-                                marginBottom: 8,
-                                color: "var(--color-text-secondary)",
-                            }}
-                        >
-                            What did you observe?
-                        </label>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                            <label
+                                style={{
+                                    fontSize: "0.8125rem",
+                                    fontWeight: 600,
+                                    color: "var(--color-text-secondary)",
+                                }}
+                            >
+                                What did you observe?
+                            </label>
+
+                            {/* Voice controls */}
+                            {
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    {/* Language toggle */}
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            borderRadius: 8,
+                                            overflow: "hidden",
+                                            border: "1px solid var(--color-border)",
+                                            fontSize: "0.6875rem",
+                                            fontWeight: 600,
+                                        }}
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() => setVoiceLang("en")}
+                                            style={{
+                                                padding: "4px 10px",
+                                                border: "none",
+                                                cursor: "pointer",
+                                                background: voiceLang === "en" ? "var(--color-accent)" : "transparent",
+                                                color: voiceLang === "en" ? "#fff" : "var(--color-text-secondary)",
+                                                transition: "all 0.15s ease",
+                                            }}
+                                        >
+                                            EN
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setVoiceLang("hi")}
+                                            style={{
+                                                padding: "4px 10px",
+                                                border: "none",
+                                                cursor: "pointer",
+                                                background: voiceLang === "hi" ? "var(--color-accent)" : "transparent",
+                                                color: voiceLang === "hi" ? "#fff" : "var(--color-text-secondary)",
+                                                transition: "all 0.15s ease",
+                                            }}
+                                        >
+                                            हिं
+                                        </button>
+                                    </div>
+
+                                    {/* Mic button */}
+                                    <button
+                                        type="button"
+                                        onClick={toggleRecording}
+                                        title={isRecording ? "Stop recording" : `Start voice input (${voiceLang === "en" ? "English" : "Hindi"})`}
+                                        style={{
+                                            width: 36,
+                                            height: 36,
+                                            borderRadius: "50%",
+                                            border: isRecording ? "2px solid var(--color-danger)" : "1px solid var(--color-border)",
+                                            background: isRecording ? "var(--color-danger)" : "transparent",
+                                            color: isRecording ? "#fff" : "var(--color-text-secondary)",
+                                            cursor: "pointer",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            fontSize: "1.1rem",
+                                            transition: "all 0.2s ease",
+                                            animation: isRecording ? "pulse 1.5s ease-in-out infinite" : "none",
+                                        }}
+                                    >
+                                        {isRecording ? "◼" : "🎤"}
+                                    </button>
+                                </div>
+                            }
+                        </div>
+
+                        {/* Recording / Transcribing indicator */}
+                        {(isRecording || isTranscribing) && (
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 8,
+                                    padding: "8px 14px",
+                                    marginBottom: 8,
+                                    borderRadius: 10,
+                                    background: isRecording ? "#FEF2F2" : "#F0F4FF",
+                                    fontSize: "0.8125rem",
+                                    color: isRecording ? "var(--color-danger)" : "var(--color-accent)",
+                                    fontWeight: 600,
+                                }}
+                            >
+                                {isRecording ? (
+                                    <>
+                                        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--color-danger)", animation: "pulse 1s ease-in-out infinite" }} />
+                                        Recording ({voiceLang === "en" ? "English" : "Hindi"})... tap stop when done
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
+                                        Transcribing...
+                                    </>
+                                )}
+                            </div>
+                        )}
+
                         <textarea
                             className="textarea"
                             value={rawText}
                             onChange={(e) => setRawText(e.target.value)}
-                            placeholder="e.g. Needed a reminder twice during the packaging task. Lost focus after 20 minutes but resumed after encouragement. Got along well with peers today."
+                            placeholder={voiceLang === "hi"
+                                ? "Type or speak your observation... Hindi/Hinglish supported. e.g. Aaj usne sab kaam khud kiya aur doosre bacchon ki bhi madad ki."
+                                : "Type or speak your observation... e.g. Needed a reminder twice during the packaging task. Lost focus after 20 minutes but resumed after encouragement."
+                            }
                             style={{ minHeight: 150 }}
                         />
                         <div
