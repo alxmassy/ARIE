@@ -28,6 +28,30 @@
   /* Surfaces */
   --color-surface-hover: #f3f5f4;
   --color-surface-active: #eaedeb;
+
+  /* Transparent overlay helpers for glassmorphism */
+  --color-glass-surface: rgba(255, 255, 255, 0.65);
+  --color-glass-border: rgba(229, 231, 235, 0.6);
+  --color-glass-nav: rgba(255, 255, 255, 0.65);
+}
+
+.dark {
+  --color-bg: #0f1412;
+  --color-surface: #161c19;
+  --color-text: #f3f5f4;
+  --color-text-secondary: #9ca3af;
+  --color-border: #2d3732;
+
+  --color-accent: #6ca386;
+  --color-accent-hover: #7db899;
+  --color-accent-light: #162a20;
+
+  --color-surface-hover: #1f2723;
+  --color-surface-active: #2a342f;
+
+  --color-glass-surface: rgba(22, 28, 25, 0.65);
+  --color-glass-border: rgba(45, 55, 50, 0.6);
+  --color-glass-nav: rgba(22, 28, 25, 0.65);
 }
 
 /* Base */
@@ -132,17 +156,17 @@ body {
 
 /* Card — soft, rounded, breathing room, glassmorphic */
 .card {
-  background: rgba(255, 255, 255, 0.65);
+  background: var(--color-glass-surface);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(229, 231, 235, 0.6);
+  border: 1px solid var(--color-glass-border);
   border-radius: 20px;
   padding: 28px;
   transition: all 0.3s ease;
 }
 
 .card:hover {
-  box-shadow: 0 8px 24px rgba(31, 41, 55, 0.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); /* Darkened slightly for theme contrast */
 }
 
 .card-interactive {
@@ -151,9 +175,9 @@ body {
 
 .card-interactive:hover {
   transform: translateY(-4px);
-  background: rgba(238, 245, 241, 0.85); /* Subtle greenish tint */
-  border-color: rgba(91, 138, 114, 0.4); /* Accent color border */
-  box-shadow: 0 12px 32px rgba(91, 138, 114, 0.15); /* Greenish soft shadow */
+  background: var(--color-accent-light);
+  border-color: rgba(91, 138, 114, 0.4);
+  box-shadow: 0 12px 32px rgba(91, 138, 114, 0.15);
 }
 
 /* Avatar circle */

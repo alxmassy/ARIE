@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LineChart, Line, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, ResponsiveContainer, YAxis } from "recharts";
 import {
   getDashboardOverview,
   createTeen,
@@ -69,6 +69,7 @@ export default function Dashboard() {
   const [teens, setTeens] = useState<DashboardTeen[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [formName, setFormName] = useState("");
   const [formAge, setFormAge] = useState("");
   const [showMetrics, setShowMetrics] = useState(false);
@@ -194,7 +195,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Add Participant ── */}
+      {/* ── Participants Header & Controls ── */}
       <div
         style={{
           display: "flex",
@@ -206,13 +207,28 @@ export default function Dashboard() {
         <div className="section-title" style={{ marginBottom: 0 }}>
           Participants
         </div>
-        <button
-          className="btn-secondary"
-          onClick={() => setShowForm(!showForm)}
-          style={{ padding: "7px 16px", fontSize: "0.8125rem" }}
-        >
-          {showForm ? "Cancel" : "Add Participant"}
-        </button>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <input
+            type="text"
+            className="input"
+            placeholder="Search participants..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ 
+              width: 250, 
+              padding: "7px 14px", 
+              fontSize: "0.875rem",
+              backgroundColor: "var(--color-glass-surface)",
+            }}
+          />
+          <button
+            className="btn-secondary"
+            onClick={() => setShowForm(!showForm)}
+            style={{ padding: "7px 16px", fontSize: "0.8125rem" }}
+          >
+            {showForm ? "Cancel" : "Add Participant"}
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -350,7 +366,11 @@ export default function Dashboard() {
             gap: 20,
           }}
         >
-          {teens.map((teen) => {
+          {teens
+            .filter((teen) => 
+               teen.name.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+            .map((teen) => {
             const trend = TREND_LABELS[teen.trend] || TREND_LABELS.plateau;
             const status = statusLabel(teen.regression_risk);
 
@@ -434,19 +454,30 @@ export default function Dashboard() {
                   </div>
 
                   {/* Micro Sparkline */}
-                  <div style={{ height: 32, width: "100%", marginTop: "auto" }}>
+                  <div style={{ height: 48, width: "100%", marginTop: "auto", overflow: "hidden" }}>
                     {sparklineData.length > 1 ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={sparklineData}>
-                          <Line
+                        <AreaChart data={sparklineData}>
+                          <defs>
+                            <linearGradient id={`color-${teen.id}`} x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={scoreColor(teen.readiness_score)} stopOpacity={0.3}/>
+                              <stop offset="95%" stopColor={scoreColor(teen.readiness_score)} stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <YAxis 
+                            hide 
+                            domain={['dataMin - 1', 'dataMax + 1']} 
+                          />
+                          <Area
                             type="monotone"
                             dataKey="value"
                             stroke={scoreColor(teen.readiness_score)}
                             strokeWidth={2}
-                            dot={false}
+                            fillOpacity={1}
+                            fill={`url(#color-${teen.id})`}
                             isAnimationActive={false}
                           />
-                        </LineChart>
+                        </AreaChart>
                       </ResponsiveContainer>
                     ) : (
                       <div style={{ width: "100%", height: "100%", borderBottom: "1px dashed var(--color-border)" }} />

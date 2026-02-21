@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import "./globals.css";
 import arieLogo from "./arie.png";
+import AuthMenu from "@/components/AuthMenu";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -35,14 +36,14 @@ export default function RootLayout({
         {/* Navigation */}
         <nav
           style={{
-            backgroundColor: "rgba(255, 255, 255, 0.65)",
+            backgroundColor: "var(--color-glass-nav)",
             backdropFilter: "blur(16px)",
             WebkitBackdropFilter: "blur(16px)",
-            boxShadow: "0 1px 8px rgba(31, 41, 55, 0.04)",
+            boxShadow: "0 1px 8px rgba(0, 0, 0, 0.05)",
             position: "sticky",
             top: 0,
             zIndex: 50,
-            borderBottom: "1px solid rgba(229, 231, 235, 0.4)",
+            borderBottom: "1px solid var(--color-glass-border)",
           }}
         >
           <div
@@ -100,33 +101,8 @@ export default function RootLayout({
               {/* Vertical Divider */}
               <div style={{ width: 1, height: 24, backgroundColor: "var(--color-border)" }} />
 
-               {/* Auth Placeholders */}
-               <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                  <button
-                    className="btn-secondary"
-                    style={{ padding: "7px 16px", fontSize: "0.8125rem", backgroundColor: "transparent", border: "none" }}
-                  >
-                    Log in
-                  </button>
-                  <div
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "50%",
-                      backgroundColor: "var(--color-accent)",
-                      color: "white",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 700,
-                      fontSize: "0.875rem",
-                      cursor: "pointer",
-                      boxShadow: "0 2px 4px rgba(91, 138, 114, 0.2)",
-                    }}
-                  >
-                    JS
-                  </div>
-               </div>
+               {/* Auth / Profile Menu */}
+               <AuthMenu />
             </div>
           </div>
         </nav>
