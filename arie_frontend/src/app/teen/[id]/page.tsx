@@ -167,7 +167,7 @@ export default function TeenDetailPage() {
 
     return (
         <div>
-            {/* Back + Header */}
+            {/* Back */}
             <button
                 onClick={() => router.push("/")}
                 style={{
@@ -176,97 +176,107 @@ export default function TeenDetailPage() {
                     color: "var(--color-text-secondary)",
                     cursor: "pointer",
                     fontSize: "0.875rem",
-                    marginBottom: 12,
+                    marginBottom: 16,
                     padding: 0,
                 }}
             >
                 ← Back to Overview
             </button>
 
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    marginBottom: 32,
-                }}
-            >
-                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                    <div className="avatar" style={{ width: 52, height: 52, fontSize: "1.25rem" }}>
-                        {getInitials(detail.name)}
-                    </div>
-                    <div>
-                        <h1
-                            style={{
-                                fontSize: "1.6rem",
-                                fontWeight: 700,
-                                letterSpacing: "-0.01em",
-                                marginBottom: 2,
-                            }}
-                        >
-                            {detail.name}
-                        </h1>
-                        <span
-                            style={{
-                                fontSize: "0.875rem",
-                                color: "var(--color-text-secondary)",
-                            }}
-                        >
-                            Age {detail.age}
-                        </span>
-                    </div>
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                    <button
-                        className="btn-primary"
-                        onClick={handleSnapshot}
-                        disabled={snapshotting}
-                    >
-                        {snapshotting ? "Saving..." : "Take Snapshot"}
-                    </button>
-                    <button
-                        className="btn-secondary"
-                        onClick={handleDelete}
-                        style={{ color: "var(--color-danger)" }}
-                    >
-                        Remove
-                    </button>
-                </div>
-            </div>
-
-            {/* ── Section 1: Overview ── */}
+            {/* ── Hero Section ── */}
             <div
                 className="card"
-                style={{ marginBottom: 24 }}
+                style={{
+                    marginBottom: 28,
+                    padding: "32px 36px",
+                }}
             >
+                {/* Top row: identity + actions */}
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        marginBottom: 24,
+                    }}
+                >
+                    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                        <div className="avatar" style={{ width: 56, height: 56, fontSize: "1.3rem" }}>
+                            {getInitials(detail.name)}
+                        </div>
+                        <div>
+                            <h1
+                                style={{
+                                    fontSize: "1.75rem",
+                                    fontWeight: 700,
+                                    letterSpacing: "-0.02em",
+                                    marginBottom: 2,
+                                }}
+                            >
+                                {detail.name}
+                            </h1>
+                            <span
+                                style={{
+                                    fontSize: "0.875rem",
+                                    color: "var(--color-text-secondary)",
+                                }}
+                            >
+                                Age {detail.age}
+                            </span>
+                        </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                        <button
+                            className="btn-primary"
+                            onClick={handleSnapshot}
+                            disabled={snapshotting}
+                        >
+                            {snapshotting ? "Saving..." : "Take Snapshot"}
+                        </button>
+                        <button
+                            className="btn-secondary"
+                            onClick={handleDelete}
+                            style={{ color: "var(--color-danger)" }}
+                        >
+                            Remove
+                        </button>
+                    </div>
+                </div>
+
+                {/* Hero stats row: big score + status/confidence + narrative */}
                 <div
                     style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 32,
-                        flexWrap: "wrap",
+                        gap: 36,
                     }}
                 >
-                    {/* Big score */}
-                    <div style={{ textAlign: "center", minWidth: 120 }}>
+                    {/* Big score — emotional anchor */}
+                    <div style={{ textAlign: "center", minWidth: 140 }}>
                         <div
                             className="score-display"
-                            style={{ fontSize: "3rem", color: scoreClr, lineHeight: 1 }}
+                            style={{ fontSize: "4rem", color: scoreClr, lineHeight: 1, letterSpacing: "-0.03em" }}
                         >
                             {scoreVal.toFixed(1)}
                         </div>
                         <div
                             style={{
-                                fontSize: "0.8125rem",
+                                fontSize: "0.75rem",
                                 color: "var(--color-text-secondary)",
-                                marginTop: 4,
+                                marginTop: 6,
+                                fontWeight: 600,
+                                textTransform: "uppercase",
+                                letterSpacing: "0.06em",
                             }}
                         >
                             Readiness Score
                         </div>
                     </div>
 
-                    {/* Status + Confidence + Human line */}
+                    {/* Divider */}
+                    <div style={{ width: 1, height: 64, background: "var(--color-border)" }} />
+
+                    {/* Status + Confidence + narrative */}
                     <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
                             <span className={`badge ${status.cls}`}>{status.text}</span>
@@ -278,7 +288,7 @@ export default function TeenDetailPage() {
                                 </span>
                             )}
                         </div>
-                        <p className="status-line">
+                        <p style={{ fontSize: "1rem", lineHeight: 1.6, marginBottom: 4 }}>
                             {trendDescription(detail.trend, scoreVal, detail.rolling_average)}
                         </p>
                         {detail.confidence && (
@@ -296,18 +306,18 @@ export default function TeenDetailPage() {
                 </div>
             </div>
 
-            {/* ── Section 2: Current Strength Profile ── */}
+            {/* ── Section 2: Current Strength Profile + Timeline ── */}
             <div
                 style={{
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr",
-                    gap: 20,
+                    gap: 14,
                     marginBottom: 24,
                 }}
             >
-                <div className="card">
+                <div className="card" style={{ padding: "16px 20px" }}>
                     <div className="section-title">Current Strength Profile</div>
-                    <ResponsiveContainer width="100%" height={300}>
+                    <ResponsiveContainer width="100%" height={360}>
                         <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="65%">
                             <PolarGrid stroke="var(--color-border)" />
                             <PolarAngleAxis
@@ -336,7 +346,7 @@ export default function TeenDetailPage() {
                 </div>
 
                 {/* Score Timeline */}
-                <div className="card">
+                <div className="card" style={{ padding: "16px 20px" }}>
                     <div className="section-title">Progress Over Time</div>
                     {timelineData.length === 0 ? (
                         <div
@@ -344,7 +354,7 @@ export default function TeenDetailPage() {
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                height: 300,
+                                height: 360,
                                 color: "var(--color-text-secondary)",
                                 fontSize: "0.875rem",
                             }}
@@ -352,7 +362,7 @@ export default function TeenDetailPage() {
                             No snapshots yet — take one to begin tracking progress
                         </div>
                     ) : (
-                        <ResponsiveContainer width="100%" height={300}>
+                        <ResponsiveContainer width="100%" height={360}>
                             <LineChart data={timelineData}>
                                 <CartesianGrid
                                     strokeDasharray="4 4"

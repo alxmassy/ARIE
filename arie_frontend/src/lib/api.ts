@@ -78,6 +78,7 @@ export interface DashboardTeen {
     readiness_score: number;
     regression_risk: "Low" | "Medium" | "High";
     trend: string;
+    sparkline: number[];
 }
 
 export interface GapDetail {

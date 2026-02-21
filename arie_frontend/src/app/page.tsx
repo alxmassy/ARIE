@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { LineChart, Line, ResponsiveContainer } from "recharts";
 import {
   getDashboardOverview,
   createTeen,
@@ -47,59 +48,21 @@ const getGreeting = () => {
   return { text: "Good evening", emoji: "🌙" };
 };
 
-/* Derive insight cards from dashboard data */
-function deriveInsights(teens: DashboardTeen[]) {
-  const insights: { icon: string; text: string; accent: string }[] = [];
-
-  const improving = teens.filter((t) => t.trend === "growth");
-  const declining = teens.filter((t) => t.trend === "decline");
-  const needsAttention = teens.filter((t) => t.regression_risk === "High");
+/* Calculate top summary band stats */
+function calculateSummaryStats(teens: DashboardTeen[]) {
+  const improving = teens.filter((t) => t.trend === "growth").length;
+  const needsAttention = teens.filter((t) => t.regression_risk === "High").length;
   const avgScore =
     teens.length > 0
       ? teens.reduce((s, t) => s + t.readiness_score, 0) / teens.length
       : 0;
 
-  if (improving.length > 0) {
-    const names = improving
-      .slice(0, 2)
-      .map((t) => t.name)
-      .join(" and ");
-    insights.push({
-      icon: "↑",
-      text: `${names} ${improving.length === 1 ? "is" : "are"} showing improvement`,
-      accent: "var(--color-positive)",
-    });
-  }
-
-  if (needsAttention.length > 0) {
-    const names = needsAttention
-      .slice(0, 2)
-      .map((t) => t.name)
-      .join(" and ");
-    insights.push({
-      icon: "●",
-      text: `${names} may need additional support`,
-      accent: "var(--color-danger)",
-    });
-  }
-
-  if (declining.length > 0 && declining.length !== needsAttention.length) {
-    insights.push({
-      icon: "↓",
-      text: `${declining.length} participant${declining.length > 1 ? "s" : ""} with declining readiness`,
-      accent: "var(--color-warning)",
-    });
-  }
-
-  if (teens.length > 0) {
-    insights.push({
-      icon: "◎",
-      text: `Average readiness across ${teens.length} participant${teens.length > 1 ? "s" : ""}: ${avgScore.toFixed(1)}`,
-      accent: "var(--color-info)",
-    });
-  }
-
-  return insights;
+  return {
+    total: teens.length,
+    avgScore: avgScore.toFixed(1),
+    improving,
+    needsAttention,
+  };
 }
 
 export default function Dashboard() {
@@ -108,6 +71,14 @@ export default function Dashboard() {
   const [showForm, setShowForm] = useState(false);
   const [formName, setFormName] = useState("");
   const [formAge, setFormAge] = useState("");
+  const [showMetrics, setShowMetrics] = useState(false);
+  const [metrics, setMetrics] = useState({
+    task_performance: 50,
+    supervision_independence: 50,
+    behavioral_stability: 50,
+    cognitive_adaptability: 50,
+    consistency: 50,
+  });
   const [creating, setCreating] = useState(false);
 
   const fetchData = async () => {
@@ -130,9 +101,21 @@ export default function Dashboard() {
     if (!formName.trim() || !formAge.trim()) return;
     setCreating(true);
     try {
-      await createTeen({ name: formName.trim(), age: parseInt(formAge) });
+      await createTeen({
+        name: formName.trim(),
+        age: parseInt(formAge),
+        ...(showMetrics && { baseline_vector: metrics })
+      });
       setFormName("");
       setFormAge("");
+      setShowMetrics(false);
+      setMetrics({
+        task_performance: 50,
+        supervision_independence: 50,
+        behavioral_stability: 50,
+        cognitive_adaptability: 50,
+        consistency: 50,
+      });
       setShowForm(false);
       await fetchData();
     } catch (err) {
@@ -158,77 +141,54 @@ export default function Dashboard() {
   }
 
   const greeting = getGreeting();
-  const insights = deriveInsights(teens);
+  const summary = calculateSummaryStats(teens);
 
   return (
     <div>
-      {/* ── Greeting + Recent Updates side-by-side ── */}
+      {/* ── Greeting ── */}
+      <div style={{ marginBottom: 24 }}>
+        <h1
+          style={{
+            fontSize: "2.25rem",
+            fontWeight: 700,
+            letterSpacing: "-0.02em",
+            marginBottom: 8,
+          }}
+        >
+          {greeting.emoji} {greeting.text}
+        </h1>
+        <p className="status-line" style={{ fontSize: "1rem" }}>
+          {teens.length > 0
+            ? `You're tracking ${teens.length} participant${teens.length !== 1 ? "s" : ""}. Here's how they're doing.`
+            : "Welcome to ARIE. Add a participant to begin tracking transition readiness."}
+        </p>
+      </div>
+
+      {/* ── Top Summary Band ── */}
       <div
         style={{
-          display: "flex",
-          gap: 28,
-          alignItems: "flex-start",
-          marginBottom: 36,
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: 16,
+          marginBottom: 40,
         }}
       >
-        {/* Left: Greeting */}
-        <div style={{ flex: 1 }}>
-          <h1
-            style={{
-              fontSize: "2.25rem",
-              fontWeight: 700,
-              letterSpacing: "-0.02em",
-              marginBottom: 8,
-            }}
-          >
-            {greeting.emoji} {greeting.text}
-          </h1>
-          <p className="status-line" style={{ fontSize: "1rem" }}>
-            {teens.length > 0
-              ? `You're tracking ${teens.length} participant${teens.length !== 1 ? "s" : ""}. Here's how they're doing.`
-              : "Welcome to ARIE. Add a participant to begin tracking transition readiness."}
-          </p>
+        <div className="card" style={{ padding: "20px 24px" }}>
+          <div style={{ fontSize: "0.8125rem", color: "var(--color-text-secondary)", fontWeight: 600, marginBottom: 8 }}>Total Participants</div>
+          <div style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-text)", lineHeight: 1 }}>{summary.total}</div>
         </div>
-
-        {/* Right: Recent Updates */}
-        {insights.length > 0 && (
-          <div style={{ flex: 1, maxWidth: 420 }}>
-            <div className="section-title">Recent Updates</div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-              }}
-            >
-              {insights.map((insight, i) => (
-                <div
-                  key={i}
-                  className="card"
-                  style={{
-                    padding: "14px 18px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: "1rem",
-                      color: insight.accent,
-                      lineHeight: 1,
-                    }}
-                  >
-                    {insight.icon}
-                  </span>
-                  <span style={{ fontSize: "0.8125rem", lineHeight: 1.5 }}>
-                    {insight.text}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <div className="card" style={{ padding: "20px 24px" }}>
+          <div style={{ fontSize: "0.8125rem", color: "var(--color-text-secondary)", fontWeight: 600, marginBottom: 8 }}>Average Readiness</div>
+          <div style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-accent)", lineHeight: 1 }}>{summary.avgScore}</div>
+        </div>
+        <div className="card" style={{ padding: "20px 24px" }}>
+          <div style={{ fontSize: "0.8125rem", color: "var(--color-text-secondary)", fontWeight: 600, marginBottom: 8 }}>Improving</div>
+          <div style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-positive)", lineHeight: 1 }}>{summary.improving}</div>
+        </div>
+        <div className="card" style={{ padding: "20px 24px" }}>
+          <div style={{ fontSize: "0.8125rem", color: "var(--color-text-secondary)", fontWeight: 600, marginBottom: 8 }}>Needs Attention</div>
+          <div style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-danger)", lineHeight: 1 }}>{summary.needsAttention}</div>
+        </div>
       </div>
 
       {/* ── Add Participant ── */}
@@ -259,61 +219,106 @@ export default function Dashboard() {
           style={{
             marginBottom: 20,
             display: "flex",
-            gap: 14,
-            alignItems: "flex-end",
+            flexDirection: "column",
+            gap: 16,
           }}
         >
-          <div style={{ flex: 1 }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "0.8125rem",
-                fontWeight: 600,
-                marginBottom: 6,
-                color: "var(--color-text-secondary)",
-              }}
-            >
-              Name
-            </label>
-            <input
-              className="input"
-              value={formName}
-              onChange={(e) => setFormName(e.target.value)}
-              placeholder="Participant name"
-              required
-            />
+          <div style={{ display: "flex", gap: 14, alignItems: "flex-end" }}>
+            <div style={{ flex: 1 }}>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.8125rem",
+                  fontWeight: 600,
+                  marginBottom: 6,
+                  color: "var(--color-text-secondary)",
+                }}
+              >
+                Name
+              </label>
+              <input
+                className="input"
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                placeholder="Participant name"
+                required
+              />
+            </div>
+            <div style={{ width: 100 }}>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.8125rem",
+                  fontWeight: 600,
+                  marginBottom: 6,
+                  color: "var(--color-text-secondary)",
+                }}
+              >
+                Age
+              </label>
+              <input
+                className="input"
+                type="number"
+                min={13}
+                max={21}
+                value={formAge}
+                onChange={(e) => setFormAge(e.target.value)}
+                placeholder="Age"
+                required
+              />
+            </div>
           </div>
-          <div style={{ width: 100 }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "0.8125rem",
-                fontWeight: 600,
-                marginBottom: 6,
-                color: "var(--color-text-secondary)",
-              }}
-            >
-              Age
+
+          <div>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.8125rem", cursor: "pointer", color: "var(--color-text-secondary)" }}>
+              <input
+                type="checkbox"
+                checked={showMetrics}
+                onChange={(e) => setShowMetrics(e.target.checked)}
+                style={{ accentColor: "var(--color-accent)" }}
+              />
+              Set starting metrics (optional)
             </label>
-            <input
-              className="input"
-              type="number"
-              min={13}
-              max={21}
-              value={formAge}
-              onChange={(e) => setFormAge(e.target.value)}
-              placeholder="Age"
-              required
-            />
           </div>
-          <button
-            className="btn-primary"
-            type="submit"
-            disabled={creating}
-            style={{ whiteSpace: "nowrap" }}
-          >
-            {creating ? "Creating..." : "Create"}
-          </button>
+
+          {showMetrics && (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, paddingTop: 8 }}>
+              {Object.entries(metrics).map(([key, value]) => (
+                <div key={key}>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                      marginBottom: 4,
+                      color: "var(--color-text-secondary)",
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    {key.replace("_", " ")}
+                  </label>
+                  <input
+                    className="input"
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={value}
+                    onChange={(e) => setMetrics({ ...metrics, [key]: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button
+              className="btn-primary"
+              type="submit"
+              disabled={creating}
+            >
+              {creating ? "Creating..." : "Create Participant"}
+            </button>
+          </div>
         </form>
       )}
 
@@ -345,20 +350,27 @@ export default function Dashboard() {
           {teens.map((teen) => {
             const trend = TREND_LABELS[teen.trend] || TREND_LABELS.plateau;
             const status = statusLabel(teen.regression_risk);
+
+            // Format sparkline data for Recharts
+            const sparklineData = (teen.sparkline || []).map((val, i) => ({
+              index: i,
+              value: val,
+            }));
+
             return (
               <Link
                 key={teen.id}
                 href={`/teen/${teen.id}`}
                 style={{ textDecoration: "none", color: "inherit" }}
               >
-                <div className="card card-interactive">
+                <div className="card card-interactive" style={{ display: "flex", flexDirection: "column", minHeight: 180 }}>
                   {/* Top row: avatar + name + status */}
                   <div
                     style={{
                       display: "flex",
-                      alignItems: "center",
+                      alignItems: "flex-start",
                       gap: 14,
-                      marginBottom: 20,
+                      marginBottom: 16,
                     }}
                   >
                     <div className="avatar">{getInitials(teen.name)}</div>
@@ -393,26 +405,18 @@ export default function Dashboard() {
                       display: "flex",
                       alignItems: "baseline",
                       justifyContent: "space-between",
+                      marginBottom: 12,
                     }}
                   >
                     <div>
                       <span
                         className="score-display"
                         style={{
-                          fontSize: "2.25rem",
+                          fontSize: "2.5rem",
                           color: scoreColor(teen.readiness_score),
                         }}
                       >
                         {teen.readiness_score.toFixed(1)}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "0.875rem",
-                          color: "var(--color-text-secondary)",
-                          marginLeft: 4,
-                        }}
-                      >
-                        / 100
                       </span>
                     </div>
                     <span
@@ -424,6 +428,26 @@ export default function Dashboard() {
                     >
                       {trend.label}
                     </span>
+                  </div>
+
+                  {/* Micro Sparkline */}
+                  <div style={{ height: 32, width: "100%", marginTop: "auto" }}>
+                    {sparklineData.length > 1 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={sparklineData}>
+                          <Line
+                            type="monotone"
+                            dataKey="value"
+                            stroke={scoreColor(teen.readiness_score)}
+                            strokeWidth={2}
+                            dot={false}
+                            isAnimationActive={false}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", borderBottom: "1px dashed var(--color-border)" }} />
+                    )}
                   </div>
                 </div>
               </Link>

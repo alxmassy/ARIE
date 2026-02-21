@@ -51,9 +51,11 @@ def dashboard_overview(db: Session = Depends(get_db)):
             ]
             regression = detect_regression_risk(snapshot_dicts)
             trend = detect_trend(snapshot_dicts)
+            sparkline = [current_score] + [s.readiness_score for s in snapshots]
         else:
             regression = {"risk_level": "Low", "reasons": ["No snapshot history"]}
             trend = "plateau"
+            sparkline = [current_score]
 
         results.append({
             "id": str(teen.id),
@@ -62,6 +64,7 @@ def dashboard_overview(db: Session = Depends(get_db)):
             "readiness_score": current_score,
             "regression_risk": regression["risk_level"],
             "trend": trend,
+            "sparkline": sparkline,
         })
 
     return results
