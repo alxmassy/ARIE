@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { DM_Sans, JetBrains_Mono } from "next/font/google";
+import { Nunito, JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
@@ -16,9 +16,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ARIE",
+  title: "ARIE — Transition Support",
   description:
-    "AI-assisted decision intelligence for NGO employability readiness tracking.",
+    "Empowering caregivers with readiness intelligence for vocational transition tracking.",
 };
 
 export default function RootLayout({
@@ -28,23 +28,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} ${jetbrainsMono.variable}`}>
+      <body className={`${nunito.variable} ${jetbrainsMono.variable}`}>
         {/* Navigation */}
         <nav
           style={{
-            borderBottom: "1px solid var(--color-border)",
             backgroundColor: "var(--color-surface)",
+            boxShadow: "0 1px 8px rgba(31, 41, 55, 0.04)",
           }}
         >
           <div
             style={{
               maxWidth: 1200,
               margin: "0 auto",
-              padding: "0 24px",
+              padding: "0 28px",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              height: 56,
+              height: 60,
             }}
           >
             <Link
@@ -58,38 +58,38 @@ export default function RootLayout({
             >
               <span
                 style={{
-                  fontSize: "1.1rem",
+                  fontSize: "1.15rem",
                   fontWeight: 700,
                   color: "var(--color-accent)",
-                  letterSpacing: "-0.02em",
+                  letterSpacing: "-0.01em",
                 }}
               >
                 ARIE
               </span>
               <span
                 style={{
-                  fontSize: "0.75rem",
+                  fontSize: "0.8125rem",
                   color: "var(--color-text-secondary)",
                   fontWeight: 500,
                 }}
               >
-                Readiness Intelligence
+                Transition Support
               </span>
             </Link>
-            <div style={{ display: "flex", gap: 6 }}>
+            <div style={{ display: "flex", gap: 8 }}>
               <Link
                 href="/"
                 className="btn-secondary"
-                style={{ padding: "6px 14px", fontSize: "0.8125rem" }}
+                style={{ padding: "7px 16px", fontSize: "0.8125rem" }}
               >
-                Dashboard
+                Overview
               </Link>
               <Link
                 href="/observe"
                 className="btn-primary"
-                style={{ padding: "6px 14px", fontSize: "0.8125rem" }}
+                style={{ padding: "7px 16px", fontSize: "0.8125rem" }}
               >
-                + Observation
+                Record Observation
               </Link>
             </div>
           </div>
@@ -100,7 +100,7 @@ export default function RootLayout({
           style={{
             maxWidth: 1200,
             margin: "0 auto",
-            padding: "32px 24px",
+            padding: "36px 28px",
           }}
         >
           {children}

@@ -26,11 +26,53 @@ import {
 } from "recharts";
 
 const DIMENSION_LABELS: Record<string, string> = {
-    task_performance: "Task Perf.",
-    supervision_independence: "Super. Indep.",
-    behavioral_stability: "Behav. Stab.",
-    cognitive_adaptability: "Cog. Adapt.",
+    task_performance: "Task Performance",
+    supervision_independence: "Supervision Independence",
+    behavioral_stability: "Behavioral Stability",
+    cognitive_adaptability: "Cognitive Adaptability",
     consistency: "Consistency",
+};
+
+const DIMENSION_SHORT: Record<string, string> = {
+    task_performance: "Task Perf.",
+    supervision_independence: "Supervision",
+    behavioral_stability: "Stability",
+    cognitive_adaptability: "Adaptability",
+    consistency: "Consistency",
+};
+
+const statusLabel = (risk: string) => {
+    switch (risk) {
+        case "High":
+            return { text: "Needs Attention", cls: "badge-attention" };
+        case "Medium":
+            return { text: "Steady", cls: "badge-steady" };
+        default:
+            return { text: "Stable", cls: "badge-stable" };
+    }
+};
+
+const trendDescription = (trend: string, score: number, rollingAvg: number | null) => {
+    const formatted = score.toFixed(1);
+    if (trend === "growth") {
+        return `Readiness is improving — currently at ${formatted}.`;
+    }
+    if (trend === "decline") {
+        return `Readiness has been declining — currently at ${formatted}. Review recent observations.`;
+    }
+    if (rollingAvg !== null) {
+        return `Readiness is holding steady around ${Number(rollingAvg).toFixed(1)}.`;
+    }
+    return `Current readiness score is ${formatted}.`;
+};
+
+const getInitials = (name: string) => {
+    return name
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
 };
 
 export default function TeenDetailPage() {
@@ -75,12 +117,12 @@ export default function TeenDetailPage() {
     };
 
     const handleDelete = async () => {
-        if (!confirm("Delete this teen and all their data?")) return;
+        if (!confirm("Remove this participant and all their data?")) return;
         try {
             await deleteTeen(teenId);
             router.push("/");
         } catch (e) {
-            console.error("Failed to delete teen:", e);
+            console.error("Failed to delete:", e);
         }
     };
 
@@ -102,7 +144,7 @@ export default function TeenDetailPage() {
     // Radar data
     const radarData = Object.entries(detail.current_vector).map(
         ([key, value]) => ({
-            dimension: DIMENSION_LABELS[key] || key,
+            dimension: DIMENSION_SHORT[key] || key,
             value: value as number,
             fullMark: 100,
         })
@@ -114,20 +156,33 @@ export default function TeenDetailPage() {
         score: s.readiness_score,
     }));
 
-    const riskClass = (risk: string) => {
-        switch (risk) {
-            case "High":
-                return "badge-high";
-            case "Medium":
-                return "badge-medium";
-            default:
-                return "badge-low";
-        }
-    };
+    const status = statusLabel(detail.regression.risk_level);
+    const scoreVal = detail.score_breakdown.total;
+    const scoreClr =
+        scoreVal >= 65
+            ? "var(--color-positive)"
+            : scoreVal >= 40
+                ? "var(--color-warning)"
+                : "var(--color-danger)";
 
     return (
         <div>
-            {/* Header */}
+            {/* Back + Header */}
+            <button
+                onClick={() => router.push("/")}
+                style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--color-text-secondary)",
+                    cursor: "pointer",
+                    fontSize: "0.875rem",
+                    marginBottom: 12,
+                    padding: 0,
+                }}
+            >
+                ← Back to Overview
+            </button>
+
             <div
                 style={{
                     display: "flex",
@@ -136,38 +191,30 @@ export default function TeenDetailPage() {
                     marginBottom: 32,
                 }}
             >
-                <div>
-                    <button
-                        onClick={() => router.push("/")}
-                        style={{
-                            background: "none",
-                            border: "none",
-                            color: "var(--color-text-secondary)",
-                            cursor: "pointer",
-                            fontSize: "0.8125rem",
-                            marginBottom: 8,
-                            padding: 0,
-                        }}
-                    >
-                        ← Back to Dashboard
-                    </button>
-                    <h1
-                        style={{
-                            fontSize: "1.5rem",
-                            fontWeight: 700,
-                            letterSpacing: "-0.02em",
-                        }}
-                    >
-                        {detail.name}
-                    </h1>
-                    <p
-                        style={{
-                            color: "var(--color-text-secondary)",
-                            fontSize: "0.875rem",
-                        }}
-                    >
-                        Age {detail.age}
-                    </p>
+                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                    <div className="avatar" style={{ width: 52, height: 52, fontSize: "1.25rem" }}>
+                        {getInitials(detail.name)}
+                    </div>
+                    <div>
+                        <h1
+                            style={{
+                                fontSize: "1.6rem",
+                                fontWeight: 700,
+                                letterSpacing: "-0.01em",
+                                marginBottom: 2,
+                            }}
+                        >
+                            {detail.name}
+                        </h1>
+                        <span
+                            style={{
+                                fontSize: "0.875rem",
+                                color: "var(--color-text-secondary)",
+                            }}
+                        >
+                            Age {detail.age}
+                        </span>
+                    </div>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                     <button
@@ -175,102 +222,91 @@ export default function TeenDetailPage() {
                         onClick={handleSnapshot}
                         disabled={snapshotting}
                     >
-                        {snapshotting ? "Saving..." : "📸 Take Snapshot"}
+                        {snapshotting ? "Saving..." : "Take Snapshot"}
                     </button>
                     <button
                         className="btn-secondary"
                         onClick={handleDelete}
                         style={{ color: "var(--color-danger)" }}
                     >
-                        Delete
+                        Remove
                     </button>
                 </div>
             </div>
 
-            {/* Score + Risk Row */}
+            {/* ── Section 1: Overview ── */}
             <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr 1fr",
-                    gap: 16,
-                    marginBottom: 24,
-                }}
+                className="card"
+                style={{ marginBottom: 24 }}
             >
-                <div className="card" style={{ textAlign: "center" }}>
-                    <div className="section-title">Readiness Score</div>
-                    <div
-                        className="score-display"
-                        style={{
-                            fontSize: "2.5rem",
-                            color:
-                                detail.score_breakdown.total >= 70
-                                    ? "var(--color-positive)"
-                                    : detail.score_breakdown.total >= 40
-                                        ? "var(--color-warning)"
-                                        : "var(--color-danger)",
-                        }}
-                    >
-                        {detail.score_breakdown.total.toFixed(1)}
-                    </div>
-                </div>
-                <div className="card" style={{ textAlign: "center" }}>
-                    <div className="section-title">Regression Risk</div>
-                    <span
-                        className={`badge ${riskClass(detail.regression.risk_level)}`}
-                        style={{ fontSize: "0.875rem", padding: "4px 16px" }}
-                    >
-                        {detail.regression.risk_level}
-                    </span>
-                    <div
-                        style={{
-                            marginTop: 8,
-                            fontSize: "0.75rem",
-                            color: "var(--color-text-secondary)",
-                        }}
-                    >
-                        {detail.regression.reasons[0]}
-                    </div>
-                </div>
-                <div className="card" style={{ textAlign: "center" }}>
-                    <div className="section-title">Trend</div>
-                    <div style={{ fontSize: "1.5rem", fontWeight: 700 }}>
-                        {detail.trend === "growth" && (
-                            <span className="trend-growth">↑ Growth</span>
-                        )}
-                        {detail.trend === "plateau" && (
-                            <span className="trend-plateau">→ Plateau</span>
-                        )}
-                        {detail.trend === "decline" && (
-                            <span className="trend-decline">↓ Decline</span>
-                        )}
-                    </div>
-                    {detail.rolling_average !== null && (
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 32,
+                        flexWrap: "wrap",
+                    }}
+                >
+                    {/* Big score */}
+                    <div style={{ textAlign: "center", minWidth: 120 }}>
                         <div
-                            className="data-mono"
+                            className="score-display"
+                            style={{ fontSize: "3rem", color: scoreClr, lineHeight: 1 }}
+                        >
+                            {scoreVal.toFixed(1)}
+                        </div>
+                        <div
                             style={{
-                                marginTop: 4,
-                                fontSize: "0.75rem",
+                                fontSize: "0.8125rem",
                                 color: "var(--color-text-secondary)",
+                                marginTop: 4,
                             }}
                         >
-                            Rolling avg: {Number(detail.rolling_average).toFixed(1)}
+                            Readiness Score
                         </div>
-                    )}
+                    </div>
+
+                    {/* Status + Confidence + Human line */}
+                    <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
+                            <span className={`badge ${status.cls}`}>{status.text}</span>
+                            {detail.confidence && (
+                                <span className="badge-confidence">
+                                    {detail.confidence.confidence === "High" ? "●" :
+                                        detail.confidence.confidence === "Medium" ? "◐" : "○"}
+                                    {" "}{detail.confidence.confidence} Confidence
+                                </span>
+                            )}
+                        </div>
+                        <p className="status-line">
+                            {trendDescription(detail.trend, scoreVal, detail.rolling_average)}
+                        </p>
+                        {detail.confidence && (
+                            <p
+                                style={{
+                                    fontSize: "0.8125rem",
+                                    color: "var(--color-text-secondary)",
+                                    marginTop: 4,
+                                }}
+                            >
+                                {detail.confidence.confidence_reason}
+                            </p>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            {/* Charts Row */}
+            {/* ── Section 2: Current Strength Profile ── */}
             <div
                 style={{
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr",
-                    gap: 16,
+                    gap: 20,
                     marginBottom: 24,
                 }}
             >
-                {/* Radar */}
                 <div className="card">
-                    <div className="section-title">Readiness Dimensions</div>
+                    <div className="section-title">Current Strength Profile</div>
                     <ResponsiveContainer width="100%" height={300}>
                         <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
                             <PolarGrid stroke="var(--color-border)" />
@@ -289,18 +325,18 @@ export default function TeenDetailPage() {
                             <Radar
                                 name="Readiness"
                                 dataKey="value"
-                                stroke="#C2613A"
-                                fill="#C2613A"
-                                fillOpacity={0.15}
+                                stroke="#5B8A72"
+                                fill="#5B8A72"
+                                fillOpacity={0.12}
                                 strokeWidth={2}
                             />
                         </RadarChart>
                     </ResponsiveContainer>
                 </div>
 
-                {/* Timeline */}
+                {/* Score Timeline */}
                 <div className="card">
-                    <div className="section-title">Score Timeline</div>
+                    <div className="section-title">Progress Over Time</div>
                     {timelineData.length === 0 ? (
                         <div
                             style={{
@@ -312,13 +348,13 @@ export default function TeenDetailPage() {
                                 fontSize: "0.875rem",
                             }}
                         >
-                            No snapshots yet — take one to start tracking
+                            No snapshots yet — take one to begin tracking progress
                         </div>
                     ) : (
                         <ResponsiveContainer width="100%" height={300}>
                             <LineChart data={timelineData}>
                                 <CartesianGrid
-                                    strokeDasharray="3 3"
+                                    strokeDasharray="4 4"
                                     stroke="var(--color-border)"
                                 />
                                 <XAxis
@@ -339,20 +375,21 @@ export default function TeenDetailPage() {
                                     contentStyle={{
                                         background: "var(--color-surface)",
                                         border: "1px solid var(--color-border)",
-                                        borderRadius: 8,
+                                        borderRadius: 12,
                                         fontSize: "0.8125rem",
                                     }}
                                 />
                                 <Line
                                     type="monotone"
                                     dataKey="score"
-                                    stroke="#C2613A"
-                                    strokeWidth={2}
+                                    stroke="#5B8A72"
+                                    strokeWidth={2.5}
                                     dot={{
-                                        fill: "#C2613A",
+                                        fill: "#5B8A72",
                                         r: 4,
+                                        strokeWidth: 0,
                                     }}
-                                    activeDot={{ r: 6 }}
+                                    activeDot={{ r: 6, fill: "#5B8A72" }}
                                 />
                             </LineChart>
                         </ResponsiveContainer>
@@ -360,9 +397,9 @@ export default function TeenDetailPage() {
                 </div>
             </div>
 
-            {/* Score Breakdown */}
+            {/* ── Dimension Breakdown ── */}
             <div className="card" style={{ marginBottom: 24 }}>
-                <div className="section-title">Score Breakdown</div>
+                <div className="section-title">Areas Showing Growth</div>
                 <div
                     style={{
                         display: "grid",
@@ -377,21 +414,23 @@ export default function TeenDetailPage() {
                             key={dim}
                             style={{
                                 textAlign: "center",
-                                padding: "12px 0",
+                                padding: "16px 8px",
+                                borderRadius: 14,
+                                background: "var(--color-bg)",
                             }}
                         >
                             <div
                                 style={{
                                     fontSize: "0.75rem",
                                     color: "var(--color-text-secondary)",
-                                    marginBottom: 4,
+                                    marginBottom: 6,
                                 }}
                             >
-                                {DIMENSION_LABELS[dim] || dim}
+                                {DIMENSION_SHORT[dim] || dim}
                             </div>
                             <div
                                 className="score-display"
-                                style={{ fontSize: "1.5rem", marginBottom: 2 }}
+                                style={{ fontSize: "1.5rem", marginBottom: 4 }}
                             >
                                 {(contrib.raw as number).toFixed(0)}
                             </div>
@@ -410,106 +449,97 @@ export default function TeenDetailPage() {
                 </div>
             </div>
 
-            {/* Bottom Row: Job Matches + Observations */}
+            {/* ── Section 3: Suitable Training Pathways ── */}
             <div
                 style={{
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr",
-                    gap: 16,
+                    gap: 20,
                 }}
             >
-                {/* Job Matches */}
                 <div className="card">
-                    <div className="section-title">Vocational Alignment</div>
+                    <div className="section-title">Suitable Training Pathways</div>
                     {detail.job_matches.length === 0 ? (
-                        <p
-                            style={{
-                                color: "var(--color-text-secondary)",
-                                fontSize: "0.875rem",
-                            }}
-                        >
-                            No job profiles available
+                        <p className="status-line">
+                            No training profiles available yet.
                         </p>
                     ) : (
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                            <thead>
-                                <tr
-                                    style={{
-                                        borderBottom: "1px solid var(--color-border)",
-                                    }}
-                                >
-                                    <th
-                                        style={{
-                                            textAlign: "left",
-                                            padding: "8px 0",
-                                            fontSize: "0.75rem",
-                                            fontWeight: 600,
-                                            color: "var(--color-text-secondary)",
-                                        }}
-                                    >
-                                        Role
-                                    </th>
-                                    <th
-                                        style={{
-                                            textAlign: "right",
-                                            padding: "8px 0",
-                                            fontSize: "0.75rem",
-                                            fontWeight: 600,
-                                            color: "var(--color-text-secondary)",
-                                        }}
-                                    >
-                                        Match
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {detail.job_matches.map((job) => (
-                                    <tr
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            {detail.job_matches.map((job) => {
+                                const pct = job.effective_percent ?? job.similarity_percent;
+                                const isDisqualified = job.disqualified;
+                                const matchClr =
+                                    pct >= 80
+                                        ? "var(--color-positive)"
+                                        : pct >= 60
+                                            ? "var(--color-warning)"
+                                            : "var(--color-danger)";
+
+                                return (
+                                    <div
                                         key={job.job_name}
+                                        className={isDisqualified ? "row-disqualified" : ""}
                                         style={{
-                                            borderBottom: "1px solid var(--color-border)",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "space-between",
+                                            padding: "12px 16px",
+                                            borderRadius: 14,
+                                            background: "var(--color-bg)",
                                         }}
                                     >
-                                        <td style={{ padding: "10px 0", fontSize: "0.875rem" }}>
-                                            {job.job_name}
-                                        </td>
-                                        <td
+                                        <div>
+                                            <div style={{ fontSize: "0.875rem", fontWeight: 600 }}>
+                                                {job.job_name}
+                                            </div>
+                                            {isDisqualified && (
+                                                <div
+                                                    style={{
+                                                        fontSize: "0.75rem",
+                                                        color: "var(--color-danger)",
+                                                        marginTop: 2,
+                                                    }}
+                                                >
+                                                    Requires further development
+                                                </div>
+                                            )}
+                                            {!isDisqualified && job.penalty > 0 && (
+                                                <div
+                                                    style={{
+                                                        fontSize: "0.75rem",
+                                                        color: "var(--color-warning)",
+                                                        marginTop: 2,
+                                                    }}
+                                                >
+                                                    Some skill gaps identified
+                                                </div>
+                                            )}
+                                        </div>
+                                        <span
                                             className="data-mono"
                                             style={{
-                                                textAlign: "right",
-                                                padding: "10px 0",
-                                                fontSize: "0.875rem",
-                                                fontWeight: 600,
-                                                color:
-                                                    job.similarity_percent >= 80
-                                                        ? "var(--color-positive)"
-                                                        : job.similarity_percent >= 60
-                                                            ? "var(--color-warning)"
-                                                            : "var(--color-danger)",
+                                                fontSize: "1rem",
+                                                fontWeight: 700,
+                                                color: matchClr,
                                             }}
                                         >
-                                            {job.similarity_percent.toFixed(1)}%
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                            {pct.toFixed(0)}%
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     )}
                 </div>
 
-                {/* Observations */}
+                {/* ── Observations ── */}
                 <div className="card">
                     <div className="section-title">
                         Recent Observations ({observations.length})
                     </div>
                     {observations.length === 0 ? (
-                        <p
-                            style={{
-                                color: "var(--color-text-secondary)",
-                                fontSize: "0.875rem",
-                            }}
-                        >
-                            No observations logged yet
+                        <p className="status-line">
+                            No observations recorded yet.
                         </p>
                     ) : (
                         <div
@@ -525,13 +555,18 @@ export default function TeenDetailPage() {
                                 <div
                                     key={obs.id}
                                     style={{
-                                        padding: 12,
-                                        borderRadius: 8,
+                                        padding: 14,
+                                        borderRadius: 14,
                                         background: "var(--color-bg)",
-                                        border: "1px solid var(--color-border)",
                                     }}
                                 >
-                                    <p style={{ fontSize: "0.8125rem", lineHeight: 1.5, marginBottom: 6 }}>
+                                    <p
+                                        style={{
+                                            fontSize: "0.8125rem",
+                                            lineHeight: 1.6,
+                                            marginBottom: 8,
+                                        }}
+                                    >
                                         {obs.raw_text}
                                     </p>
                                     <div
@@ -543,7 +578,7 @@ export default function TeenDetailPage() {
                                     >
                                         <span
                                             style={{
-                                                fontSize: "0.6875rem",
+                                                fontSize: "0.75rem",
                                                 color: "var(--color-text-secondary)",
                                             }}
                                         >
@@ -559,7 +594,7 @@ export default function TeenDetailPage() {
                                                 className="data-mono"
                                                 style={{
                                                     display: "flex",
-                                                    gap: 6,
+                                                    gap: 8,
                                                     fontSize: "0.6875rem",
                                                 }}
                                             >
@@ -576,7 +611,7 @@ export default function TeenDetailPage() {
                                                                         : "delta-negative"
                                                                 }
                                                             >
-                                                                {DIMENSION_LABELS[key]?.split(".")[0] || key}:{" "}
+                                                                {DIMENSION_SHORT[key] || key}:{" "}
                                                                 {num > 0 ? "+" : ""}
                                                                 {num}
                                                             </span>

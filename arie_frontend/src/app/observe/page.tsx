@@ -65,25 +65,20 @@ export default function ObservePage() {
 
     return (
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
-            <div style={{ marginBottom: 32 }}>
+            <div style={{ marginBottom: 36 }}>
                 <h1
                     style={{
-                        fontSize: "1.5rem",
+                        fontSize: "1.6rem",
                         fontWeight: 700,
-                        letterSpacing: "-0.02em",
-                        marginBottom: 4,
+                        letterSpacing: "-0.01em",
+                        marginBottom: 6,
                     }}
                 >
-                    Log Observation
+                    Record an Observation
                 </h1>
-                <p
-                    style={{
-                        color: "var(--color-text-secondary)",
-                        fontSize: "0.875rem",
-                    }}
-                >
-                    Enter a natural language staff observation. ARIE&apos;s NLP engine will
-                    extract structured behavioral deltas automatically.
+                <p className="status-line">
+                    Describe what you observed in natural language. ARIE will extract
+                    structured behavioral insights automatically.
                 </p>
             </div>
 
@@ -91,26 +86,24 @@ export default function ObservePage() {
             {!result && (
                 <div className="card" style={{ marginBottom: 24 }}>
                     {/* Teen Selector */}
-                    <div style={{ marginBottom: 16 }}>
+                    <div style={{ marginBottom: 20 }}>
                         <label
                             style={{
                                 display: "block",
-                                fontSize: "0.75rem",
+                                fontSize: "0.8125rem",
                                 fontWeight: 600,
-                                marginBottom: 6,
+                                marginBottom: 8,
                                 color: "var(--color-text-secondary)",
-                                textTransform: "uppercase",
-                                letterSpacing: "0.05em",
                             }}
                         >
-                            Teen
+                            Participant
                         </label>
                         <select
                             className="select"
                             value={selectedTeen}
                             onChange={(e) => setSelectedTeen(e.target.value)}
                         >
-                            <option value="">Select a teen...</option>
+                            <option value="">Select a participant...</option>
                             {teens.map((t) => (
                                 <option key={t.id} value={t.id}>
                                     {t.name} (Age {t.age})
@@ -120,37 +113,35 @@ export default function ObservePage() {
                     </div>
 
                     {/* Observation Text */}
-                    <div style={{ marginBottom: 16 }}>
+                    <div style={{ marginBottom: 20 }}>
                         <label
                             style={{
                                 display: "block",
-                                fontSize: "0.75rem",
+                                fontSize: "0.8125rem",
                                 fontWeight: 600,
-                                marginBottom: 6,
+                                marginBottom: 8,
                                 color: "var(--color-text-secondary)",
-                                textTransform: "uppercase",
-                                letterSpacing: "0.05em",
                             }}
                         >
-                            Staff Observation
+                            What did you observe?
                         </label>
                         <textarea
                             className="textarea"
                             value={rawText}
                             onChange={(e) => setRawText(e.target.value)}
-                            placeholder="e.g. Needed reminder twice during packaging task. Lost focus after 20 minutes but resumed after encouragement. Got along well with peers today."
-                            style={{ minHeight: 140 }}
+                            placeholder="e.g. Needed a reminder twice during the packaging task. Lost focus after 20 minutes but resumed after encouragement. Got along well with peers today."
+                            style={{ minHeight: 150 }}
                         />
                         <div
                             style={{
                                 display: "flex",
                                 justifyContent: "space-between",
-                                marginTop: 4,
+                                marginTop: 6,
                             }}
                         >
                             <span
                                 style={{
-                                    fontSize: "0.6875rem",
+                                    fontSize: "0.75rem",
                                     color:
                                         rawText.length < 10
                                             ? "var(--color-text-secondary)"
@@ -163,7 +154,7 @@ export default function ObservePage() {
                             </span>
                             <span
                                 style={{
-                                    fontSize: "0.6875rem",
+                                    fontSize: "0.75rem",
                                     color: "var(--color-text-secondary)",
                                 }}
                             >
@@ -177,25 +168,25 @@ export default function ObservePage() {
                         className="btn-primary"
                         onClick={handleAnalyze}
                         disabled={analyzing || !selectedTeen || rawText.trim().length < 10}
-                        style={{ width: "100%", padding: "12px 20px" }}
+                        style={{ width: "100%", padding: "13px 20px" }}
                     >
                         {analyzing ? (
                             <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                 <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
-                                Analyzing with AI...
+                                Analyzing...
                             </span>
                         ) : (
-                            "🔬 Analyze Observation"
+                            "Analyze Observation"
                         )}
                     </button>
 
                     {error && (
                         <div
                             style={{
-                                marginTop: 12,
-                                padding: "10px 14px",
-                                background: "#FDE8E8",
-                                borderRadius: 8,
+                                marginTop: 14,
+                                padding: "12px 16px",
+                                background: "#F9EEEE",
+                                borderRadius: 12,
                                 fontSize: "0.8125rem",
                                 color: "var(--color-danger)",
                             }}
@@ -213,7 +204,7 @@ export default function ObservePage() {
                     <div
                         className="card"
                         style={{
-                            marginBottom: 16,
+                            marginBottom: 20,
                             borderColor: "var(--color-positive)",
                             borderWidth: 1,
                         }}
@@ -228,17 +219,17 @@ export default function ObservePage() {
                             <div>
                                 <div
                                     style={{
-                                        fontSize: "0.875rem",
-                                        fontWeight: 600,
+                                        fontSize: "0.9375rem",
+                                        fontWeight: 700,
                                         color: "var(--color-positive)",
-                                        marginBottom: 2,
+                                        marginBottom: 4,
                                     }}
                                 >
-                                    ✓ Observation Saved
+                                    Observation Recorded
                                 </div>
                                 <span
                                     style={{
-                                        fontSize: "0.75rem",
+                                        fontSize: "0.8125rem",
                                         color: "var(--color-text-secondary)",
                                     }}
                                 >
@@ -253,7 +244,7 @@ export default function ObservePage() {
                                     <div
                                         className="score-display"
                                         style={{
-                                            fontSize: "1.5rem",
+                                            fontSize: "1.75rem",
                                             color:
                                                 result.change_report.readiness_score_change >= 0
                                                     ? "var(--color-positive)"
@@ -267,7 +258,7 @@ export default function ObservePage() {
                                     </div>
                                     <span
                                         style={{
-                                            fontSize: "0.6875rem",
+                                            fontSize: "0.75rem",
                                             color: "var(--color-text-secondary)",
                                         }}
                                     >
@@ -281,8 +272,8 @@ export default function ObservePage() {
 
                     {/* Extracted Deltas */}
                     {result.observation.structured_delta && (
-                        <div className="card" style={{ marginBottom: 16 }}>
-                            <div className="section-title">Extracted Deltas</div>
+                        <div className="card" style={{ marginBottom: 20 }}>
+                            <div className="section-title">Behavioral Changes Detected</div>
                             <div
                                 style={{
                                     display: "grid",
@@ -298,8 +289,8 @@ export default function ObservePage() {
                                                 key={dim}
                                                 style={{
                                                     textAlign: "center",
-                                                    padding: "12px 8px",
-                                                    borderRadius: 8,
+                                                    padding: "14px 8px",
+                                                    borderRadius: 14,
                                                     background: "var(--color-bg)",
                                                 }}
                                             >
@@ -307,7 +298,7 @@ export default function ObservePage() {
                                                     style={{
                                                         fontSize: "0.6875rem",
                                                         color: "var(--color-text-secondary)",
-                                                        marginBottom: 4,
+                                                        marginBottom: 6,
                                                     }}
                                                 >
                                                     {DIMENSION_LABELS[dim] || dim}
@@ -329,8 +320,8 @@ export default function ObservePage() {
 
                     {/* NLP Reasoning */}
                     {result.nlp_reasoning && (
-                        <div className="card" style={{ marginBottom: 16 }}>
-                            <div className="section-title">AI Reasoning</div>
+                        <div className="card" style={{ marginBottom: 20 }}>
+                            <div className="section-title">Analysis Reasoning</div>
                             <div
                                 style={{
                                     display: "flex",
@@ -342,32 +333,30 @@ export default function ObservePage() {
                                     <div
                                         key={dim}
                                         style={{
-                                            padding: "10px 12px",
-                                            borderRadius: 8,
+                                            padding: "12px 14px",
+                                            borderRadius: 14,
                                             background: "var(--color-bg)",
                                             borderLeft: `3px solid ${result.observation.structured_delta &&
-                                                    (result.observation.structured_delta[dim] as number) > 0
-                                                    ? "var(--color-positive)"
-                                                    : result.observation.structured_delta &&
-                                                        (result.observation.structured_delta[dim] as number) < 0
-                                                        ? "var(--color-danger)"
-                                                        : "var(--color-border)"
+                                                (result.observation.structured_delta[dim] as number) > 0
+                                                ? "var(--color-positive)"
+                                                : result.observation.structured_delta &&
+                                                    (result.observation.structured_delta[dim] as number) < 0
+                                                    ? "var(--color-danger)"
+                                                    : "var(--color-border)"
                                                 }`,
                                         }}
                                     >
                                         <div
                                             style={{
-                                                fontSize: "0.6875rem",
-                                                fontWeight: 600,
+                                                fontSize: "0.75rem",
+                                                fontWeight: 700,
                                                 color: "var(--color-text-secondary)",
-                                                marginBottom: 2,
-                                                textTransform: "uppercase",
-                                                letterSpacing: "0.05em",
+                                                marginBottom: 4,
                                             }}
                                         >
                                             {DIMENSION_LABELS[dim] || dim}
                                         </div>
-                                        <div style={{ fontSize: "0.8125rem", lineHeight: 1.5 }}>
+                                        <div style={{ fontSize: "0.8125rem", lineHeight: 1.6 }}>
                                             {reason}
                                         </div>
                                     </div>
@@ -379,8 +368,8 @@ export default function ObservePage() {
                     {/* Dimension Changes */}
                     {result.change_report &&
                         Object.keys(result.change_report.dimension_changes).length > 0 && (
-                            <div className="card" style={{ marginBottom: 16 }}>
-                                <div className="section-title">Dimension Changes</div>
+                            <div className="card" style={{ marginBottom: 20 }}>
+                                <div className="section-title">Dimension Impact</div>
                                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                                     <thead>
                                         <tr
@@ -391,7 +380,7 @@ export default function ObservePage() {
                                             <th
                                                 style={{
                                                     textAlign: "left",
-                                                    padding: "8px 0",
+                                                    padding: "10px 0",
                                                     fontSize: "0.75rem",
                                                     fontWeight: 600,
                                                     color: "var(--color-text-secondary)",
@@ -402,7 +391,7 @@ export default function ObservePage() {
                                             <th
                                                 style={{
                                                     textAlign: "right",
-                                                    padding: "8px 0",
+                                                    padding: "10px 0",
                                                     fontSize: "0.75rem",
                                                     fontWeight: 600,
                                                     color: "var(--color-text-secondary)",
@@ -413,7 +402,7 @@ export default function ObservePage() {
                                             <th
                                                 style={{
                                                     textAlign: "right",
-                                                    padding: "8px 0",
+                                                    padding: "10px 0",
                                                     fontSize: "0.75rem",
                                                     fontWeight: 600,
                                                     color: "var(--color-text-secondary)",
@@ -424,7 +413,7 @@ export default function ObservePage() {
                                             <th
                                                 style={{
                                                     textAlign: "right",
-                                                    padding: "8px 0",
+                                                    padding: "10px 0",
                                                     fontSize: "0.75rem",
                                                     fontWeight: 600,
                                                     color: "var(--color-text-secondary)",
@@ -445,7 +434,7 @@ export default function ObservePage() {
                                                 >
                                                     <td
                                                         style={{
-                                                            padding: "10px 0",
+                                                            padding: "12px 0",
                                                             fontSize: "0.8125rem",
                                                         }}
                                                     >
@@ -455,7 +444,7 @@ export default function ObservePage() {
                                                         className="data-mono"
                                                         style={{
                                                             textAlign: "right",
-                                                            padding: "10px 0",
+                                                            padding: "12px 0",
                                                             fontSize: "0.8125rem",
                                                         }}
                                                     >
@@ -465,7 +454,7 @@ export default function ObservePage() {
                                                         className="data-mono"
                                                         style={{
                                                             textAlign: "right",
-                                                            padding: "10px 0",
+                                                            padding: "12px 0",
                                                             fontSize: "0.8125rem",
                                                         }}
                                                     >
@@ -475,7 +464,7 @@ export default function ObservePage() {
                                                         className={`data-mono ${deltaColor(change.change)}`}
                                                         style={{
                                                             textAlign: "right",
-                                                            padding: "10px 0",
+                                                            padding: "12px 0",
                                                             fontSize: "0.8125rem",
                                                         }}
                                                     >
@@ -493,13 +482,13 @@ export default function ObservePage() {
                     {/* Actions */}
                     <div style={{ display: "flex", gap: 12 }}>
                         <button className="btn-primary" onClick={handleReset}>
-                            + New Observation
+                            New Observation
                         </button>
                         <button
                             className="btn-secondary"
                             onClick={() => router.push(`/teen/${result.observation.teen_id}`)}
                         >
-                            View Teen Detail →
+                            View Participant →
                         </button>
                     </div>
                 </div>
