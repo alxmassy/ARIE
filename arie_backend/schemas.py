@@ -50,6 +50,7 @@ class TeenResponse(BaseModel):
 class ObservationCreate(BaseModel):
     teen_id: UUID
     raw_text: str = Field(min_length=10)
+    structured_delta: dict | None = None  # optional — NLP engine will fill this later
 
 
 class ObservationResponse(BaseModel):
