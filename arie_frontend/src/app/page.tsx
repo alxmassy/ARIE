@@ -144,9 +144,12 @@ export default function Dashboard() {
   const summary = calculateSummaryStats(teens);
 
   return (
-    <div>
-      {/* ── Greeting ── */}
-      <div style={{ marginBottom: 24 }}>
+    <>
+      {/* Full-bleed animated radial gradient background for the home dashboard */}
+      <div className="bg-gradient-animated" />
+      <div>
+        {/* ── Greeting ── */}
+        <div style={{ marginBottom: 24 }}>
         <h1
           style={{
             fontSize: "2.25rem",
@@ -456,5 +459,6 @@ export default function Dashboard() {
         </div>
       )}
     </div>
+    </>
   );
 }
