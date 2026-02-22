@@ -92,22 +92,22 @@ export default function LandingPage() {
               marginBottom: 24,
             }}
           >
-            Transition Readiness{" "}
-            <span style={{ color: "var(--color-accent)" }}>Intelligence</span>
+            Helping Neurodiverse Teens{" "}
+            <span style={{ color: "var(--color-accent)" }}>Transition</span>
             <br />
-            for Neurodiverse Teens
+            from School to Work
           </h1>
           <p
             style={{
               fontSize: "1.15rem",
               lineHeight: 1.7,
               color: "var(--color-text-secondary)",
-              maxWidth: 600,
+              maxWidth: 620,
               margin: "0 auto 40px",
             }}
           >
-            ARIE transforms everyday staff observations into structured readiness scores,
-            early regression alerts, and personalized growth actions.
+            ARIE turns everyday teacher observations into structured readiness scores,
+            early warning alerts, and personalized action plans — so no child slips through unnoticed.
           </p>
           <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
             <Link
@@ -124,7 +124,7 @@ export default function LandingPage() {
                 transition: "all 0.2s ease",
               }}
             >
-              Request Pilot
+              Start a Pilot
             </Link>
             <a
               href="#solution"
@@ -185,41 +185,89 @@ export default function LandingPage() {
                   style={{
                     background: "var(--color-surface)",
                     borderRadius: 12,
-                    padding: "16px 18px",
+                    padding: "14px 16px",
                     border: "1px solid var(--color-border)",
                   }}
                 >
-                  <div style={{ fontSize: "0.7rem", color: "var(--color-text-secondary)", fontWeight: 600, marginBottom: 6 }}>
+                  <div style={{ fontSize: "0.65rem", color: "var(--color-text-secondary)", fontWeight: 600, marginBottom: 4 }}>
                     {stat.label}
                   </div>
-                  <div style={{ fontSize: "1.5rem", fontWeight: 800, color: stat.color }}>
+                  <div style={{ fontSize: "1.35rem", fontWeight: 800, color: stat.color }}>
                     {stat.value}
                   </div>
                 </div>
               ))}
             </div>
-            {/* Mock Cards Row */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-              {[1, 2, 3].map((i) => (
+            {/* Mock Participant Cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
+              {[
+                { name: "Arjun M.", initials: "AM", score: "65.9", trend: "Improving", trendColor: "var(--color-positive)", scoreColor: "var(--color-positive)", sparkPath: "M0,28 L12,24 L24,20 L36,22 L48,16 L60,12 L72,8" },
+                { name: "Priya S.", initials: "PS", score: "48.2", trend: "Holding", trendColor: "var(--color-warning)", scoreColor: "var(--color-warning)", sparkPath: "M0,16 L12,18 L24,14 L36,16 L48,18 L60,14 L72,16" },
+                { name: "Rohan K.", initials: "RK", score: "52.0", trend: "Holding", trendColor: "var(--color-warning)", scoreColor: "var(--color-warning)", sparkPath: "M0,20 L12,18 L24,22 L36,16 L48,20 L60,18 L72,17" },
+              ].map((p) => (
                 <div
-                  key={i}
+                  key={p.name}
                   style={{
                     background: "var(--color-surface)",
                     borderRadius: 12,
-                    padding: "18px",
+                    padding: "16px",
                     border: "1px solid var(--color-border)",
-                    height: 80,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--color-accent-light)" }} />
-                    <div>
-                      <div style={{ width: 80, height: 10, borderRadius: 4, background: "var(--color-surface-active)", marginBottom: 6 }} />
-                      <div style={{ width: 50, height: 8, borderRadius: 4, background: "var(--color-surface-active)" }} />
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                    <div
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: "50%",
+                        background: "var(--color-accent)",
+                        color: "white",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "0.65rem",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {p.initials}
                     </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text)" }}>{p.name}</div>
+                      <div style={{ fontSize: "0.6rem", color: p.trendColor, fontWeight: 600 }}>{p.trend}</div>
+                    </div>
+                    <div style={{ fontSize: "1.2rem", fontWeight: 800, color: p.scoreColor }}>{p.score}</div>
                   </div>
+                  {/* Mini sparkline SVG */}
+                  <svg width="100%" height="24" viewBox="0 0 72 32" preserveAspectRatio="none" style={{ display: "block" }}>
+                    <defs>
+                      <linearGradient id={`mock-grad-${p.initials}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={p.scoreColor} stopOpacity="0.3" />
+                        <stop offset="100%" stopColor={p.scoreColor} stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <path d={`${p.sparkPath} L72,32 L0,32 Z`} fill={`url(#mock-grad-${p.initials})`} />
+                    <path d={p.sparkPath} fill="none" stroke={p.scoreColor} strokeWidth="2" strokeLinecap="round" />
+                  </svg>
                 </div>
               ))}
+            </div>
+            {/* Mock AI Insight Bar */}
+            <div
+              style={{
+                background: "var(--color-surface)",
+                borderRadius: 10,
+                padding: "10px 16px",
+                border: "1px solid var(--color-border)",
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
+              <span style={{ fontSize: "0.85rem" }}>💡</span>
+              <span style={{ fontSize: "0.7rem", color: "var(--color-accent)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>Insight</span>
+              <span style={{ fontSize: "0.75rem", color: "var(--color-text-secondary)" }}>
+                Arjun&apos;s readiness score reached 65.9, showing consistent upward momentum.
+              </span>
             </div>
           </div>
         </div>
@@ -245,7 +293,7 @@ export default function LandingPage() {
               marginBottom: 12,
             }}
           >
-            The Challenge
+            The Reality
           </div>
           <h2
             style={{
@@ -256,30 +304,30 @@ export default function LandingPage() {
               lineHeight: 1.15,
             }}
           >
-            The Gap in Transition Planning
+            The Reality in Special Education Classrooms
           </h2>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 }}>
           {[
             {
               icon: "📋",
-              title: "Subjective Tracking",
-              desc: "Readiness tracking is inconsistent across staff, resulting in unreliable baselines.",
+              title: "Inconsistent Tracking",
+              desc: "Different teachers record progress differently. There is no common readiness standard across classrooms.",
             },
             {
               icon: "⏳",
-              title: "Late Detection",
-              desc: "Regression is often detected weeks or months after it begins, missing the intervention window.",
+              title: "Late Intervention",
+              desc: "By the time regression is noticed, months have passed. The window for early support closes silently.",
             },
             {
               icon: "📄",
               title: "Generic Plans",
-              desc: "Growth plans are templated, not personalized to individual capability vectors.",
+              desc: "Individual Education Plans often become templates, not truly individualized roadmaps for each child.",
             },
             {
               icon: "🔗",
-              title: "Reactive Alignment",
-              desc: "Vocational matching is reactive and disconnected from real-time readiness data.",
+              title: "No Clear Path to Employment",
+              desc: "Vocational matching is based on assumption, not measurable readiness data tied to real capabilities.",
             },
           ].map((item) => (
             <div
@@ -324,7 +372,7 @@ export default function LandingPage() {
               marginBottom: 12,
             }}
           >
-            System Architecture
+            How It Works
           </div>
           <h2
             style={{
@@ -335,7 +383,7 @@ export default function LandingPage() {
               lineHeight: 1.15,
             }}
           >
-            From Observation to Outcome
+            From Daily Notes to Real Decisions
           </h2>
         </div>
 
@@ -350,11 +398,11 @@ export default function LandingPage() {
           }}
         >
           {[
-            { step: "01", title: "Observation", desc: "Natural-language staff notes" },
-            { step: "02", title: "Structured Ontology", desc: "5-dimension readiness vector" },
-            { step: "03", title: "Readiness Engine", desc: "Scoring, trends, confidence" },
-            { step: "04", title: "Growth Intelligence", desc: "AI-powered recommendations" },
-            { step: "05", title: "Vocational Alignment", desc: "Constraint-aware matching" },
+            { step: "01", title: "Teacher Observes", desc: "Writes what they noticed today" },
+            { step: "02", title: "ARIE Structures", desc: "Maps to 5 readiness dimensions" },
+            { step: "03", title: "Trends Detected", desc: "Flags growth and regression" },
+            { step: "04", title: "Actions Generated", desc: "3 personalized growth steps" },
+            { step: "05", title: "Pathway Aligned", desc: "Matched to suitable work roles" },
           ].map((item, i) => (
             <div key={item.step} style={{ display: "flex", alignItems: "stretch" }}>
               <div
@@ -455,23 +503,23 @@ export default function LandingPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }}>
             {[
               {
-                title: "Deterministic + AI Hybrid",
-                desc: "Math-based scoring engine combined with LLM-powered growth recommendations. No black-box decisions.",
+                title: "Hybrid Intelligence, Not Just AI",
+                desc: "Mathematical scoring ensures consistency. AI adds contextual recommendations. Every decision is transparent — no black boxes.",
                 icon: "⚙️",
               },
               {
-                title: "Longitudinal Regression Detection",
-                desc: "Sliding-window analysis over weeks of data detects regression before it becomes critical.",
+                title: "Early Regression Alerts",
+                desc: "ARIE flags decline weeks before it becomes critical, giving teachers time to intervene when it actually matters.",
                 icon: "📉",
               },
               {
-                title: "Prescriptive Growth Actions",
-                desc: "AI generates specific, actionable recommendations tied to individual capability gaps.",
+                title: "Actionable Growth Steps",
+                desc: "Not just scores — clear, specific next steps for each teen. Teachers know exactly what to do on Monday morning.",
                 icon: "🎯",
               },
               {
-                title: "Constraint-Aware Job Matching",
-                desc: "Vocational alignment weighted by real readiness vectors, not aspirational assumptions.",
+                title: "Data-Driven Vocational Alignment",
+                desc: "Job pathways aligned to measurable capability, not guesswork. Every recommendation is grounded in real readiness data.",
                 icon: "🔄",
               },
             ].map((item) => (
@@ -517,7 +565,7 @@ export default function LandingPage() {
             marginBottom: 12,
           }}
         >
-          Measurable Impact
+          Built for India
         </div>
         <h2
           style={{
@@ -529,29 +577,26 @@ export default function LandingPage() {
             marginBottom: 56,
           }}
         >
-          Built for Scale
+          From 10 Students to 10,000
         </h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
           {[
-            { metric: "3×", label: "Earlier regression detection vs. manual methods" },
-            { metric: "5", label: "Structured readiness dimensions per participant" },
-            { metric: "100%", label: "Measurable intervention prioritization" },
-            { metric: "∞", label: "Scalable to institutions nationwide" },
+            { metric: "🏫", label: "Designed for NGOs, special schools, and vocational centers" },
+            { metric: "🌐", label: "Supports multilingual input — English and Hindi" },
+            { metric: "📱", label: "Works in low-resource settings with minimal infrastructure" },
+            { metric: "📈", label: "Scales from a single classroom to institutions nationwide" },
           ].map((item) => (
             <div key={item.label} style={{ padding: "20px" }}>
               <div
                 style={{
-                  fontSize: "3rem",
-                  fontWeight: 800,
-                  color: "var(--color-accent)",
+                  fontSize: "2.5rem",
                   lineHeight: 1,
-                  marginBottom: 10,
-                  letterSpacing: "-0.03em",
+                  marginBottom: 12,
                 }}
               >
                 {item.metric}
               </div>
-              <div style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)", lineHeight: 1.4 }}>
+              <div style={{ fontSize: "0.9rem", color: "var(--color-text)", lineHeight: 1.5, fontWeight: 500 }}>
                 {item.label}
               </div>
             </div>
@@ -595,24 +640,111 @@ export default function LandingPage() {
               margin: 0,
             }}
           >
-            Built with a{" "}
-            <span style={{ fontWeight: 700 }}>hybrid deterministic + LLM intelligence layer</span>,
-            optimized for scalable, low-latency inference and{" "}
+            ARIE combines a{" "}
+            <span style={{ fontWeight: 700 }}>deterministic readiness scoring engine</span>{" "}
+            with an{" "}
+            <span style={{ fontWeight: 700 }}>AI-powered recommendation layer</span>.
+            Built using{" "}
             <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "1.05rem", color: "var(--color-accent)" }}>
-              vector-based alignment computation
+              FastAPI + PostgreSQL + scalable vector computation
             </span>
-            . PostgreSQL-backed persistence, FastAPI serving layer, and a React frontend
-            designed for institutional-grade usability.
+            , designed for institutional deployment across India.
           </p>
         </div>
       </section>
 
-      {/* ── 7. Vision + Final CTA ── */}
+      {/* ── 7. Micro-Story ── */}
+      <section
+        style={{
+          maxWidth: 860,
+          margin: "0 auto",
+          padding: "80px 32px",
+        }}
+      >
+        <div
+          style={{
+            background: "var(--color-glass-surface)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid var(--color-glass-border)",
+            borderRadius: 20,
+            padding: "40px 44px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "0.75rem",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              color: "var(--color-accent)",
+              marginBottom: 20,
+            }}
+          >
+            See It in Action
+          </div>
+          <p
+            style={{
+              fontSize: "1rem",
+              color: "var(--color-text-secondary)",
+              lineHeight: 1.6,
+              marginBottom: 8,
+            }}
+          >
+            A teacher writes:
+          </p>
+          <blockquote
+            style={{
+              borderLeft: "3px solid var(--color-accent)",
+              paddingLeft: 20,
+              margin: "0 0 24px",
+              fontSize: "1.05rem",
+              fontStyle: "italic",
+              color: "var(--color-text)",
+              lineHeight: 1.7,
+            }}
+          >
+            &ldquo;Needed two reminders to complete packaging task, lost focus after 15 minutes, improved after encouragement.&rdquo;
+          </blockquote>
+          <p
+            style={{
+              fontSize: "1rem",
+              color: "var(--color-text-secondary)",
+              lineHeight: 1.6,
+              marginBottom: 16,
+            }}
+          >
+            ARIE converts this into structured readiness data and recommends:
+          </p>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            {[
+              "Incremental independence training",
+              "Timed-task reinforcement",
+              "Stability monitoring for 3 weeks",
+            ].map((action) => (
+              <div
+                key={action}
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: 8,
+                  background: "var(--color-accent-light)",
+                  color: "var(--color-accent)",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                }}
+              >
+                {action}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 8. Vision + Final CTA ── */}
       <section
         style={{
           maxWidth: 800,
           margin: "0 auto",
-          padding: "120px 32px",
+          padding: "80px 32px 120px",
           textAlign: "center",
         }}
       >
@@ -626,21 +758,20 @@ export default function LandingPage() {
             marginBottom: 20,
           }}
         >
-          From NGO dashboards to{" "}
-          <span style={{ color: "var(--color-accent)" }}>national transition intelligence</span>{" "}
-          infrastructure.
+          From NGO Classrooms to{" "}
+          <span style={{ color: "var(--color-accent)" }}>Nationwide Transition Intelligence</span>
         </h2>
         <p
           style={{
             fontSize: "1.1rem",
             color: "var(--color-text-secondary)",
             lineHeight: 1.6,
-            marginBottom: 40,
-            maxWidth: 560,
+            maxWidth: 600,
             margin: "0 auto 40px",
           }}
         >
-          Infrastructure-level intelligence for inclusive workforce development.
+          Every neurodiverse teen deserves a measurable, structured pathway from education to employment.
+          ARIE aims to become the backbone system that enables that transition at scale.
         </p>
         <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
           <Link
