@@ -47,6 +47,7 @@ export default function LandingPage() {
             <a href="#problem" style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text-secondary)", textDecoration: "none" }}>Problem</a>
             <a href="#solution" style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text-secondary)", textDecoration: "none" }}>Solution</a>
             <a href="#impact" style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text-secondary)", textDecoration: "none" }}>Impact</a>
+            <Link href="/how-it-works" style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text-secondary)", textDecoration: "none" }}>How It Works</Link>
             <Link
               href="/dashboard"
               style={{
