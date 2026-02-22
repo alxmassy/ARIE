@@ -175,16 +175,6 @@ npm install
 npm run dev
 ```
 
-### Seed Demo Data
-
-```bash
-cd arie_backend
-python seed_demo.py
-```
-
-This populates the database with 6 students, each exhibiting different trajectory patterns (improving, declining, stable, volatile, growth-then-decline, and new student with insufficient data).
-
----
 
 ## API Endpoints
 
@@ -210,22 +200,6 @@ This populates the database with 6 students, each exhibiting different trajector
 
 ---
 
-## Running Tests
-
-```bash
-cd arie_backend
-pytest tests/ -v
-```
-
-The test suite covers:
-
-- NLP extraction accuracy across English and Hindi inputs
-- Readiness score computation with known vectors
-- Regression detection at threshold boundaries
-- Trajectory engine direction and stability classification
-- Vocational matching with constraint penalties
-
----
 
 ## Environment Variables
 
