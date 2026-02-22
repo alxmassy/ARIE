@@ -27,8 +27,8 @@ const statusLabel = (risk: string) => {
 };
 
 const scoreColor = (score: number) => {
-  if (score >= 65) return "var(--color-positive)";
-  if (score >= 40) return "var(--color-warning)";
+  if (score >= 55) return "var(--color-positive)";
+  if (score >= 35) return "var(--color-warning)";
   return "var(--color-danger)";
 };
 
@@ -623,6 +623,56 @@ export default function Dashboard() {
               </Link>
             );
           })}
+        </div>
+      )}
+
+      {/* ── Status Legend ── */}
+      {teens.length > 0 && (
+        <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          {/* Regression Status */}
+          <div
+            className="card"
+            style={{ padding: "20px 24px" }}
+          >
+            <div style={{ fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 16, color: "var(--color-text-secondary)" }}>
+              Regression Status
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {[
+                /* make the text in the pill centre aligned*/
+                { cls: "badge badge-stable", label: "Stable", desc: "No regression risk, progress is consistent" },
+                { cls: "badge badge-steady", label: "Steady", desc: "Mild fluctuation, monitor but no immediate concern" },
+                { cls: "badge badge-attention", label: "Needs Attention", desc: "Significant regression risk, review support plan" },
+              ].map((item) => (
+                <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <span className={item.cls} style={{ fontSize: "0.7rem", flexShrink: 0, minWidth: 100, textAlign: "center" }}>{item.label}</span>
+                  <span style={{ fontSize: "0.8125rem", color: "var(--color-text-secondary)" }}>{item.desc}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Trend Direction */}
+          <div
+            className="card"
+            style={{ padding: "20px 24px" }}
+          >
+            <div style={{ fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 16, color: "var(--color-text-secondary)" }}>
+              Trend Direction
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {[
+                { cls: "trend-growth", label: "Improving", desc: "Score trending upward over recent weeks" },
+                { cls: "trend-plateau", label: "Holding", desc: "Score stable with minimal week-to-week change" },
+                { cls: "trend-decline", label: "Declining", desc: "Score dropping, may benefit from early intervention" },
+              ].map((item) => (
+                <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <span className={item.cls} style={{ fontWeight: 700, fontSize: "0.8125rem", flexShrink: 0, minWidth: 100 }}>{item.label}</span>
+                  <span style={{ fontSize: "0.8125rem", color: "var(--color-text-secondary)" }}>{item.desc}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>

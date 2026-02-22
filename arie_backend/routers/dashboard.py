@@ -19,6 +19,11 @@ from services.regression_engine import detect_regression_risk
 from services.temporal_engine import compute_rolling_average, detect_trend, detect_all_trends
 from services.vocational_engine import match_jobs
 from services.growth_engine import generate_growth_plan
+from services.trajectory_engine import (
+    compute_trajectory,
+    detect_early_support_window,
+    compute_support_sensitivity,
+)
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -138,6 +143,15 @@ def teen_detail(teen_id: UUID, db: Session = Depends(get_db)):
     # Confidence scoring
     confidence = compute_confidence(snapshot_dicts, observation_count)
 
+    # Trajectory analysis (ESTE)
+    trajectory = compute_trajectory(snapshot_dicts) if len(snapshot_dicts) >= 3 else None
+    early_support = (
+        detect_early_support_window(snapshot_dicts, regression["risk_level"])
+        if trajectory
+        else None
+    )
+    support_sensitivity = compute_support_sensitivity(current_vector)
+
     # Snapshot timeline for frontend charts
     timeline = [
         {
@@ -161,6 +175,9 @@ def teen_detail(teen_id: UUID, db: Session = Depends(get_db)):
         "rolling_average": rolling_avg,
         "job_matches": job_matches,
         "timeline": timeline,
+        "trajectory": trajectory,
+        "early_support": early_support,
+        "support_sensitivity": support_sensitivity,
     }
 
 
@@ -318,7 +335,14 @@ def teen_growth_plan(teen_id: UUID, db: Session = Depends(get_db)):
         return cached_plan.plan_data
 
     # Generate plan using Gemini
-    plan = generate_growth_plan(**inputs_dict)
+    try:
+        plan = generate_growth_plan(**inputs_dict)
+    except Exception as e:
+        print(f"Growth plan generation failed: {e}")
+        return {
+            "recommendations": [],
+            "message": "Growth plan temporarily unavailable — AI service rate limit reached. Please try again shortly.",
+        }
 
     # Save to cache (only if valid)
     if plan and "recommendations" in plan and plan["recommendations"]:

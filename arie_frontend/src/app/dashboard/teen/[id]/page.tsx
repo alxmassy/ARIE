@@ -11,6 +11,9 @@ import {
     type TeenDetail,
     type Observation,
     type GrowthPlan,
+    type Trajectory,
+    type EarlySupport,
+    type SupportSensitivityItem,
 } from "@/lib/api";
 import {
     Radar,
@@ -164,9 +167,9 @@ export default function TeenDetailPage() {
     const status = statusLabel(detail.regression.risk_level);
     const scoreVal = detail.score_breakdown.total;
     const scoreClr =
-        scoreVal >= 65
+        scoreVal >= 55
             ? "var(--color-positive)"
-            : scoreVal >= 40
+            : scoreVal >= 35
                 ? "var(--color-warning)"
                 : "var(--color-danger)";
 
@@ -174,7 +177,7 @@ export default function TeenDetailPage() {
         <div>
             {/* Back */}
             <button
-                onClick={() => router.push("/")}
+                onClick={() => router.push("/dashboard")}
                 style={{
                     background: "none",
                     border: "none",
@@ -314,7 +317,13 @@ export default function TeenDetailPage() {
             {/* ── Section: Recommended Focus Areas (Growth Plan) ── */}
             {growthPlan && growthPlan.recommendations.length > 0 && (
                 <div style={{ marginBottom: 28 }}>
-                    <div className="section-title">Recommended Focus Areas (This Week)</div>
+                    <div className="section-title">
+                        {detail.early_support?.active
+                            ? "Priority Focus This Week"
+                            : detail.trajectory?.direction === "Stable"
+                                ? "Sustained Growth Plan"
+                                : "Recommended Focus Areas (This Week)"}
+                    </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
                         {growthPlan.recommendations.map((rec) => (
                             <div
@@ -403,6 +412,144 @@ export default function TeenDetailPage() {
                 </div>
             )}
             
+
+            {/* ── Support Trajectory (ESTE) ── */}
+            {detail.trajectory && (
+                <div className="card" style={{ marginBottom: 28, padding: "28px 32px" }}>
+                    <div className="section-title">Support Trajectory</div>
+
+                    {/* Badges row */}
+                    <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 16, flexWrap: "wrap" }}>
+                        {/* Direction badge */}
+                        <span
+                            style={{
+                                padding: "4px 14px",
+                                borderRadius: 20,
+                                fontSize: "0.75rem",
+                                fontWeight: 700,
+                                color: "white",
+                                background:
+                                    detail.trajectory.direction === "Improving"
+                                        ? "var(--color-positive)"
+                                        : detail.trajectory.direction === "Needs Attention"
+                                            ? "var(--color-warning)"
+                                            : "var(--color-text-secondary)",
+                            }}
+                        >
+                            {detail.trajectory.direction === "Improving" ? "↑" : detail.trajectory.direction === "Needs Attention" ? "↓" : "→"}{" "}
+                            {detail.trajectory.direction}
+                        </span>
+
+                        {/* Stability badge */}
+                        <span
+                            style={{
+                                padding: "4px 14px",
+                                borderRadius: 20,
+                                fontSize: "0.75rem",
+                                fontWeight: 600,
+                                border: "1px solid var(--color-border)",
+                                color: detail.trajectory.stability === "Unstable" ? "var(--color-warning)" : "var(--color-text-secondary)",
+                            }}
+                        >
+                            {detail.trajectory.direction === "Needs Attention" && detail.trajectory.stability === "High"
+                                ? "Consistent Pattern"
+                                : detail.trajectory.direction === "Improving" && detail.trajectory.stability === "High"
+                                    ? "Steady Progress"
+                                    : `${detail.trajectory.stability} Stability`}
+                        </span>
+
+                        {/* Confidence badge */}
+                        <span
+                            style={{
+                                padding: "4px 14px",
+                                borderRadius: 20,
+                                fontSize: "0.75rem",
+                                fontWeight: 600,
+                                border: "1px solid var(--color-border)",
+                                color: "var(--color-text-secondary)",
+                            }}
+                        >
+                            {detail.trajectory.confidence} Confidence · {detail.trajectory.weeks_analyzed}w data
+                        </span>
+                    </div>
+
+                    {/* Narrative */}
+                    <p style={{ fontSize: "0.9375rem", lineHeight: 1.6, marginBottom: 16, color: "var(--color-text)" }}>
+                        {detail.trajectory.narrative}
+                    </p>
+
+                    {/* Early Support Window banner */}
+                    {detail.early_support?.active && (
+                        <div
+                            style={{
+                                padding: "14px 18px",
+                                borderRadius: 12,
+                                background: "rgba(245, 158, 11, 0.08)",
+                                border: "1px solid rgba(245, 158, 11, 0.25)",
+                                marginBottom: 20,
+                                display: "flex",
+                                alignItems: "flex-start",
+                                gap: 12,
+                            }}
+                        >
+                            <span style={{ fontSize: "1.15rem", lineHeight: 1 }}>⚡</span>
+                            <div>
+                                <div style={{ fontSize: "0.8125rem", fontWeight: 700, color: "var(--color-warning)", marginBottom: 4 }}>
+                                    Early Support Window Active
+                                </div>
+                                <div style={{ fontSize: "0.8125rem", color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
+                                    {detail.early_support.trigger_reason}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Support Sensitivity */}
+                    {detail.support_sensitivity && detail.support_sensitivity.length > 0 && (
+                        <div>
+                            <div style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-accent)", marginBottom: 12 }}>
+                                Support Effectiveness by Dimension
+                            </div>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                {detail.support_sensitivity.map((item) => {
+                                    const maxImpact = detail.support_sensitivity[0]?.delta_impact || 1;
+                                    const pct = Math.round((item.delta_impact / maxImpact) * 100);
+                                    const dimLabel = ({
+                                        task_performance: "Task Performance",
+                                        supervision_independence: "Supervision Independence",
+                                        behavioral_stability: "Behavioral Stability",
+                                        cognitive_adaptability: "Cognitive Adaptability",
+                                        consistency: "Consistency",
+                                    } as Record<string, string>)[item.dimension] || item.dimension;
+
+                                    return (
+                                        <div key={item.dimension}>
+                                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                                                <span style={{ fontSize: "0.8125rem", fontWeight: 600 }}>{dimLabel}</span>
+                                                <span className="data-mono" style={{ fontSize: "0.75rem", color: "var(--color-accent)" }}>
+                                                    +{item.delta_impact.toFixed(2)} pts
+                                                </span>
+                                            </div>
+                                            <div style={{ height: 6, borderRadius: 3, background: "var(--color-bg)" }}>
+                                                <div
+                                                    style={{
+                                                        height: "100%",
+                                                        borderRadius: 3,
+                                                        width: `${pct}%`,
+                                                        background: "var(--color-accent)",
+                                                        transition: "width 0.4s ease",
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* ── Section 2: Current Strength Profile + Timeline ── */}
             <div
                 style={{

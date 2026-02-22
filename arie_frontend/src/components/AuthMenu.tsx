@@ -51,7 +51,7 @@ export default function AuthMenu() {
             color: "var(--color-text)",
           }}
         >
-          Sarah Jenkins
+          Sarah Jain
         </span>
         <div
           onClick={() => setIsOpen(!isOpen)}
@@ -96,7 +96,7 @@ export default function AuthMenu() {
           }}
         >
           <div style={{ padding: "8px 12px", borderBottom: "1px solid var(--color-border)", marginBottom: 4 }}>
-            <div style={{ fontSize: "0.8125rem", fontWeight: 700, color: "var(--color-text)" }}>Sarah Jenkins</div>
+            <div style={{ fontSize: "0.8125rem", fontWeight: 700, color: "var(--color-text)" }}>Sarah Jain</div>
             <div style={{ fontSize: "0.75rem", color: "var(--color-text-secondary)" }}>sarah.j@arie-ngo.org</div>
           </div>
           

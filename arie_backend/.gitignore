@@ -3,3 +3,4 @@ pytest.ini
 __pycache__
 /tests
 .env
+seed_demo.py

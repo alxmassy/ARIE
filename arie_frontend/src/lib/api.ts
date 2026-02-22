@@ -125,6 +125,28 @@ export interface Confidence {
     };
 }
 
+export interface Trajectory {
+    direction: "Improving" | "Stable" | "Needs Attention";
+    slope: number;
+    volatility: number;
+    stability: "High" | "Moderate" | "Unstable";
+    confidence: "Low" | "Medium" | "High";
+    weeks_analyzed: number;
+    narrative: string;
+}
+
+export interface EarlySupport {
+    active: boolean;
+    trigger_reason: string;
+}
+
+export interface SupportSensitivityItem {
+    dimension: string;
+    current: number;
+    delta_impact: number;
+    insight: string;
+}
+
 export interface TeenDetail {
     id: string;
     name: string;
@@ -142,6 +164,9 @@ export interface TeenDetail {
         readiness_vector: ReadinessVector;
         regression_risk: string;
     }[];
+    trajectory: Trajectory | null;
+    early_support: EarlySupport | null;
+    support_sensitivity: SupportSensitivityItem[];
 }
 
 export interface SnapshotResult {

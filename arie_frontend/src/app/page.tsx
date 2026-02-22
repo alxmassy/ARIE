@@ -82,6 +82,18 @@ export default function LandingPage() {
           style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}
         />
         <div style={{ position: "relative", zIndex: 1, maxWidth: 800, margin: "0 auto", padding: "0 32px" }}>
+          <div
+            style={{
+              fontSize: "0.8125rem",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              color: "var(--color-accent)",
+              marginBottom: 16,
+            }}
+          >
+            Adaptive Readiness Intelligence Engine
+          </div>
           <h1
             style={{
               fontSize: "3.75rem",
@@ -107,7 +119,7 @@ export default function LandingPage() {
             }}
           >
             ARIE turns everyday teacher observations into structured readiness scores,
-            early warning alerts, and personalized action plans — so no child slips through unnoticed.
+            early warning alerts, and personalized action plans, so no child slips through unnoticed.
           </p>
           <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
             <Link

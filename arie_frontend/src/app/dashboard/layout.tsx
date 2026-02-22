@@ -35,7 +35,7 @@ export default function DashboardLayout({
           }}
         >
           <Link
-            href="/dashboard"
+            href="/"
             style={{
               textDecoration: "none",
               display: "flex",

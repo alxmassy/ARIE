@@ -219,6 +219,24 @@ CONFIDENCE_SETTINGS = {
 }
 
 # ---------------------------------------------------------------------------
+# Trajectory Engine Settings (ESTE)
+# ---------------------------------------------------------------------------
+TRAJECTORY_SETTINGS = {
+    # Minimum snapshots required for trajectory computation
+    "min_weeks": 3,
+    # Slope thresholds for direction classification
+    "slope_improving_threshold": 0.5,
+    "slope_attention_threshold": -0.5,
+    # Volatility bands (residual std dev)
+    "volatility_low_band": 3.0,
+    "volatility_mid_band": 6.0,
+    # Consecutive declining weeks to trigger early support window
+    "consecutive_decline_weeks": 2,
+    # Support sensitivity delta (points to simulate)
+    "sensitivity_delta": 5.0,
+}
+
+# ---------------------------------------------------------------------------
 # Gemini AI Configuration
 # ---------------------------------------------------------------------------
 import os
