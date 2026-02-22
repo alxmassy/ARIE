@@ -671,7 +671,7 @@ export default function ObservePage() {
                         </button>
                         <button
                             className="btn-secondary"
-                            onClick={() => router.push(`/teen/${result.observation.teen_id}`)}
+                            onClick={() => router.push(`/dashboard/teen/${result.observation.teen_id}`)}
                         >
                             View Participant →
                         </button>
