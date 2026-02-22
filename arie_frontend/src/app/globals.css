@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+:root {
+  color-scheme: light only;
+}
+
 /* ================================================================
    ARIE Design System — Human-Centered Warmth
    ================================================================ */
@@ -414,9 +418,17 @@ body {
   bottom: 0;
   z-index: -1;
   /* More prominent background: higher opacity (e.g., 0.25 on the sage, 0.15 on the beige) */
-  background: 
-    radial-gradient(circle at 15% 0%, rgba(91, 138, 114, 0.25) 0%, transparent 65vw), 
-    radial-gradient(circle at 85% 100%, rgba(192, 139, 63, 0.15) 0%, transparent 55vw), 
+  background:
+    radial-gradient(
+      circle at 15% 0%,
+      rgba(91, 138, 114, 0.25) 0%,
+      transparent 65vw
+    ),
+    radial-gradient(
+      circle at 85% 100%,
+      rgba(192, 139, 63, 0.15) 0%,
+      transparent 55vw
+    ),
     var(--color-bg);
   background-size: 150% 150%;
   animation: bg-pan 20s ease-in-out infinite;
