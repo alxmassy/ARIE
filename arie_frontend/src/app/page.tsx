@@ -52,6 +52,7 @@ const getGreeting = () => {
 function calculateSummaryStats(teens: DashboardTeen[]) {
   const improving = teens.filter((t) => t.trend === "growth").length;
   const needsAttention = teens.filter((t) => t.regression_risk === "High").length;
+  const stable = teens.length - improving - needsAttention;
   const avgScore =
     teens.length > 0
       ? teens.reduce((s, t) => s + t.readiness_score, 0) / teens.length
@@ -61,6 +62,7 @@ function calculateSummaryStats(teens: DashboardTeen[]) {
     total: teens.length,
     avgScore: avgScore.toFixed(1),
     improving,
+    stable,
     needsAttention,
   };
 }
@@ -168,32 +170,164 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* ── Top Summary Band ── */}
+      {/* ── Institution Readiness Hero Band ── */}
       <div
+        className="card"
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 16,
+          padding: "40px 48px",
           marginBottom: 40,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 48,
         }}
       >
-        <div className="card" style={{ padding: "20px 24px" }}>
-          <div style={{ fontSize: "0.8125rem", color: "var(--color-text-secondary)", fontWeight: 600, marginBottom: 8 }}>Total Participants</div>
-          <div style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-text)", lineHeight: 1 }}>{summary.total}</div>
+        {/* Left: Score */}
+        <div>
+          <div
+            style={{
+              fontSize: "4.5rem",
+              fontWeight: 800,
+              lineHeight: 1,
+              color: "var(--color-accent)",
+              letterSpacing: "-0.03em",
+              marginBottom: 8,
+            }}
+          >
+            {summary.avgScore}
+          </div>
+          <div
+            style={{
+              fontSize: "1rem",
+              fontWeight: 700,
+              color: "var(--color-text-secondary)",
+              letterSpacing: "0.02em",
+            }}
+          >
+            Institution Readiness Index
+          </div>
+          <div
+            style={{
+              fontSize: "0.8125rem",
+              color: "var(--color-text-secondary)",
+              marginTop: 4,
+            }}
+          >
+            Across {summary.total} participant{summary.total !== 1 ? "s" : ""}
+          </div>
         </div>
-        <div className="card" style={{ padding: "20px 24px" }}>
-          <div style={{ fontSize: "0.8125rem", color: "var(--color-text-secondary)", fontWeight: 600, marginBottom: 8 }}>Average Readiness</div>
-          <div style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-accent)", lineHeight: 1 }}>{summary.avgScore}</div>
-        </div>
-        <div className="card" style={{ padding: "20px 24px" }}>
-          <div style={{ fontSize: "0.8125rem", color: "var(--color-text-secondary)", fontWeight: 600, marginBottom: 8 }}>Improving</div>
-          <div style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-positive)", lineHeight: 1 }}>{summary.improving}</div>
-        </div>
-        <div className="card" style={{ padding: "20px 24px" }}>
-          <div style={{ fontSize: "0.8125rem", color: "var(--color-text-secondary)", fontWeight: 600, marginBottom: 8 }}>Needs Attention</div>
-          <div style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-danger)", lineHeight: 1 }}>{summary.needsAttention}</div>
+
+        {/* Right: Distribution */}
+        <div style={{ flex: 1, maxWidth: 360 }}>
+          <div
+            style={{
+              fontSize: "0.75rem",
+              fontWeight: 700,
+              color: "var(--color-text-secondary)",
+              marginBottom: 16,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+            }}
+          >
+            Participant Distribution
+          </div>
+          {[
+            { label: "Improving", count: summary.improving, color: "var(--color-positive)" },
+            { label: "Stable", count: summary.stable, color: "var(--color-warning)" },
+            { label: "Needs Attention", count: summary.needsAttention, color: "var(--color-danger)" },
+          ].map((item) => (
+            <div key={item.label} style={{ marginBottom: 12 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  marginBottom: 6,
+                  color: "var(--color-text)",
+                }}
+              >
+                <span>{item.label}</span>
+                <span style={{ color: item.color, fontWeight: 700 }}>{item.count}</span>
+              </div>
+              <div
+                style={{
+                  width: "100%",
+                  height: 6,
+                  borderRadius: 3,
+                  backgroundColor: "var(--color-surface-active)",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    width: summary.total > 0 ? `${(item.count / summary.total) * 100}%` : "0%",
+                    height: "100%",
+                    borderRadius: 3,
+                    backgroundColor: item.color,
+                    transition: "width 0.6s ease",
+                  }}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
+
+      {/* ── AI Insight of the Day ── */}
+      {teens.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            padding: "16px 24px",
+            marginBottom: 32,
+            borderRadius: 14,
+            border: "1px solid var(--color-glass-border)",
+            background: "var(--color-glass-surface)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          <span style={{ fontSize: "1.25rem", flexShrink: 0 }}>💡</span>
+          <div>
+            <div
+              style={{
+                fontSize: "0.6875rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                color: "var(--color-accent)",
+                marginBottom: 4,
+              }}
+            >
+              Today&apos;s Key Insight
+            </div>
+            <div
+              style={{
+                fontSize: "0.9rem",
+                color: "var(--color-text)",
+                lineHeight: 1.5,
+              }}
+            >
+              {(() => {
+                const improving = teens.filter((t) => t.trend === "growth");
+                const declining = teens.filter((t) => t.regression_risk === "High");
+                if (improving.length > 0) {
+                  const best = improving.reduce((a, b) =>
+                    a.readiness_score > b.readiness_score ? a : b
+                  );
+                  return `${best.name}'s readiness score reached ${best.readiness_score.toFixed(1)}, showing consistent upward momentum, a strong candidate for expanded independence pathways.`;
+                }
+                if (declining.length > 0) {
+                  return `${declining[0].name} may benefit from additional support this week, early intervention prevents long-term regression.`;
+                }
+                return `All ${teens.length} participants are maintaining stable readiness levels, a positive indicator of program consistency.`;
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Participants Header & Controls ── */}
       <div
@@ -460,7 +594,7 @@ export default function Dashboard() {
                         <AreaChart data={sparklineData}>
                           <defs>
                             <linearGradient id={`color-${teen.id}`} x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor={scoreColor(teen.readiness_score)} stopOpacity={0.3}/>
+                              <stop offset="5%" stopColor={scoreColor(teen.readiness_score)} stopOpacity={0.45}/>
                               <stop offset="95%" stopColor={scoreColor(teen.readiness_score)} stopOpacity={0}/>
                             </linearGradient>
                           </defs>
@@ -472,10 +606,12 @@ export default function Dashboard() {
                             type="monotone"
                             dataKey="value"
                             stroke={scoreColor(teen.readiness_score)}
-                            strokeWidth={2}
+                            strokeWidth={2.5}
                             fillOpacity={1}
                             fill={`url(#color-${teen.id})`}
-                            isAnimationActive={false}
+                            isAnimationActive={true}
+                            animationDuration={1200}
+                            animationEasing="ease-in-out"
                           />
                         </AreaChart>
                       </ResponsiveContainer>
