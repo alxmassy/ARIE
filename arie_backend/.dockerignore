@@ -1,0 +1,11 @@
+.env
+__pycache__
+.pytest_cache
+tests/
+*.pyc
+.git
+.gitignore
+deploy/
+analysis_stress_test.py
+seed_demo.py
+pytest.ini
