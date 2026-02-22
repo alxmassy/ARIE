@@ -2,7 +2,7 @@
 
 **AI-powered transition readiness system for neurodiverse teens, built for India's special education classrooms.**
 
-ARIE transforms everyday teacher observations into structured readiness scores, early regression alerts, and personalized growth plans — so no child slips through unnoticed during the critical transition from school to work.
+ARIE transforms everyday teacher observations into structured readiness scores, early regression alerts, and personalised growth plans — so no child slips through unnoticed during the critical transition from school to work.
 
 > **Live:** [ariedashboard.vercel.app](https://ariedashboard.vercel.app) · **Transparency:** [How It Works](https://ariedashboard.vercel.app/how-it-works)
 
