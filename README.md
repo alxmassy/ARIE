@@ -2,7 +2,7 @@
 
 **AI-powered transition readiness system for neurodiverse teens, built for India's special education classrooms.**
 
-ARIE transforms everyday teacher observations into structured readiness scores, early regression alerts, and personalized growth plans — so no child slips through unnoticed during the critical transition from school to work.
+ARIE transforms everyday teacher observations into structured readiness scores, early regression alerts, and personalised growth plans — so no child slips through unnoticed during the critical transition from school to work.
 
 > **Live:** [ariedashboard.vercel.app](https://ariedashboard.vercel.app) · **Transparency:** [How It Works](https://ariedashboard.vercel.app/how-it-works)
 
@@ -175,16 +175,6 @@ npm install
 npm run dev
 ```
 
-### Seed Demo Data
-
-```bash
-cd arie_backend
-python seed_demo.py
-```
-
-This populates the database with 6 students, each exhibiting different trajectory patterns (improving, declining, stable, volatile, growth-then-decline, and new student with insufficient data).
-
----
 
 ## API Endpoints
 
@@ -210,22 +200,6 @@ This populates the database with 6 students, each exhibiting different trajector
 
 ---
 
-## Running Tests
-
-```bash
-cd arie_backend
-pytest tests/ -v
-```
-
-The test suite covers:
-
-- NLP extraction accuracy across English and Hindi inputs
-- Readiness score computation with known vectors
-- Regression detection at threshold boundaries
-- Trajectory engine direction and stability classification
-- Vocational matching with constraint penalties
-
----
 
 ## Environment Variables
 
