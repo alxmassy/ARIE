@@ -32,6 +32,7 @@ class Teen(Base):
     # Relationships
     observations = relationship("Observation", back_populates="teen", cascade="all, delete-orphan")
     weekly_snapshots = relationship("WeeklySnapshot", back_populates="teen", cascade="all, delete-orphan")
+    growth_plan_caches = relationship("GrowthPlanCache", back_populates="teen", cascade="all, delete-orphan")
 
 
 class Observation(Base):
@@ -81,4 +82,4 @@ class GrowthPlanCache(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
-    teen = relationship("Teen")
+    teen = relationship("Teen", back_populates="growth_plan_caches")
